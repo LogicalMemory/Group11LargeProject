@@ -51,5 +51,6 @@ jobs:
           cp -r . /var/cardsServer/
           cd /var/cardsServer
           npm install
+          npm install -g pm2
           pm2 restart 'express-server'
           EOF
