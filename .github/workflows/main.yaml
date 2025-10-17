@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.16.0'
+
+      - name: Install dependencies
+        run: npm install
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+      - name: Deploy to DigitalOcean Droplet
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          sshpass -p "${SSH_KEY}" ssh -o StrictHostKeyChecking=no ${SSH_USERNAME}@${SSH_HOST} << 'EOF'
+          cd /var/www/Group11LargeProject
+          git pull origin master
+          cd frontend
+          npm install
+          npm run build
+          cp -r dist/ /var/www/
+          rm -rf /var/www/html
+          mv /var/www/dist /var/www/html
+          systemctl restart nginx
+          cd ../backend
+          rm -rf /var/cardsServer/
+          cp -r . /var/cardsServer/
+          cd /var/cardsServer
+          npm install
+          pm2 restart 'express-server'
+          EOF
