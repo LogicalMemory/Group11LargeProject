@@ -38,6 +38,7 @@ jobs:
         run: |
           sshpass -p "${SSH_KEY}" ssh -o StrictHostKeyChecking=no ${SSH_USERNAME}@${SSH_HOST} << 'EOF'
           cd /var/www/Group11LargeProject
+          git reset --hard HEAD
           git pull origin master
           cd frontend
           npm install
@@ -46,6 +47,7 @@ jobs:
           rm -rf /var/www/html
           mv /var/www/dist /var/www/html
           systemctl restart nginx
+          systemctl daemon-reload
           cd ../backend
           rm -rf /var/cardsServer/
           cp -r . /var/cardsServer/
