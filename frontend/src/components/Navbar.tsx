@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const navLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'About', href: '#about' },
-  { label: 'Log in', href: '/login' },
-];
+const navLinks = [{ label: 'Log in', href: '/login' }];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

@@ -38,6 +38,9 @@ export default function HeroSection() {
       <div className="mx-auto flex max-w-screen-xl flex-col-reverse items-center gap-12 px-4 py-16 sm:px-6 md:flex-row md:py-24 lg:px-8">
         <div className="w-full space-y-8 md:w-1/2">
           <div>
+            <p className="mb-3 inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold tracking-wide text-[#FF7A18]">
+              Launching Fall 2025 · Join the loop
+            </p>
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
               See what&apos;s happening on campus <span className="gradient-text">in real time.</span>
             </h1>
