@@ -12,11 +12,13 @@ client.connect();
 app.use(cors());
 app.use(express.json());
 
+console.log('About to load API routes...');
 var api = require('./load_api');
-api.loadApi(app,client);
+api.loadApi(app, client);
+console.log('API routes loaded!');
 
 
-app.listen(5000, () => {
-    console.log('Server running successfully');
+app.listen(5000, '0.0.0.0', () => {
+    console.log('Server running successfully on http://0.0.0.0:5000');
   }
 ); // start Node + Express server on port 5000
