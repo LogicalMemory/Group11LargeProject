@@ -1,6 +1,8 @@
 import { type FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '../components/AuthCard';
+import { buildPath } from '../components/Path';
+import { storeToken } from '../tokenStorage';
 
 type LoginForm = {
   email: string;
@@ -17,6 +19,8 @@ const initialLoginState: LoginForm = {
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginForm>(initialLoginState);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (event: FormEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = event.currentTarget;
@@ -26,7 +30,7 @@ export default function LoginPage() {
     }));
   };
 
-  const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!formData.email || !formData.password) {
@@ -34,9 +38,42 @@ export default function LoginPage() {
       return;
     }
 
-    setFormError(null);
-    // TODO: integrate POST /auth/login
-    console.log('Logging in with credentials:', formData);
+    try {
+      setIsSubmitting(true);
+      setFormError(null);
+
+      const payload = {
+        login: formData.email.trim(),
+        password: formData.password,
+      };
+
+      const response = await fetch(buildPath('api/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = data?.error || 'Unable to log in.';
+        throw new Error(message);
+      }
+
+      storeToken(data);
+      localStorage.setItem(
+        'user_data',
+        JSON.stringify({ firstName: data.firstName, lastName: data.lastName, id: data.id }),
+      );
+      navigate('/auth/success', {
+        state: { from: 'login', firstName: data.firstName },
+        replace: true,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+      setFormError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,9 +147,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF7A18] via-[#FF2D55] to-[#7B2FFF] px-4 py-3 text-sm font-semibold text-white shadow-brand transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A18]"
+            className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF7A18] via-[#FF2D55] to-[#7B2FFF] px-4 py-3 text-sm font-semibold text-white shadow-brand transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A18] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSubmitting}
           >
-            Log in
+            {isSubmitting ? 'Signing in…' : 'Log in'}
           </button>
 
           <p className="text-center text-sm text-slate-600">

@@ -1,35 +1,54 @@
+const jwtHelper = require('../../createJWT.js');
+
 exports.setApp = function (app, client, api_path) {
   app.post(api_path, async (req, res, next) => {
-    // incoming: userId, color
-    // outgoing: error
-    var token = require("./createJWT.js");
-    const { userId, card, jwtToken } = req.body;
     try {
-      if (token.isExpired(jwtToken)) {
-        var r = { error: "The JWT is no longer valid", jwtToken: "" };
-        res.status(200).json(r);
-        return;
+      // incoming: token, eventTitle, eventDescription, eventTime, eventDuration, EventLocation
+      // outgoing: token, eventObject OR error
+      const { token, eventTitle, eventDescription, eventTime, eventDuration, eventLocation } = req.body;
+
+      if (!token || !eventTitle || !eventDescription) {
+        return res.status(400).json({ error: 'Missing required fields' });
       }
-    } catch (e) {
-      console.log(e.message);
-    }
 
-    const newCard = { Card: card, UserId: userId };
-    var error = "";
-    try {
+      if (jwtHelper.isExpired(token)) {
+        return res.status(200).json({ error: "The JWT is no longer valid", token: "" });
+      }
+
       const db = client.db("COP4331Cards");
-      const result = db.collection("Cards").insertOne(newCard);
-    } catch (e) {
-      error = e.toString();
-    }
+      const events = db.collection('Events');
 
-    var refreshedToken = null;
-    try {
-      refreshedToken = token.refresh(jwtToken);
-    } catch (e) {
-      console.log(e.message);
+      const lastEvent = await events.find().sort({ EventId: -1 }).limit(1).toArray();
+      const nextId = lastEvent.length > 0 ? lastEvent[0].EventId + 1 : 1;
+
+      const userId = jwtHelper.getUserFromToken(token).userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      const newEvent = {
+        EventId: nextId,
+        EventOwnerId: userId,
+        EventTitle: eventTitle,
+        EventDescription: eventDescription,
+        EventTime: eventTime || new Date().toISOString(),
+        EventDuration: eventDuration || '60',
+        EventLocation: eventLocation || '',
+        Likes: 0,
+        LikedBy: [],
+        Comments: []
+      };
+
+      await events.insertOne(newEvent);
+
+      var refreshedToken = jwtHelper.refresh(token);
+
+      res.status(200).json({ token: refreshedToken, eventObject: newEvent });
+
+    } catch (err) {
+      console.error("Error in /api/createEvent:", err);
+      res.status(500).json({ error: "Server error" });
     }
-    var ret = { error: error, jwtToken: refreshedToken };
-    res.status(200).json(ret);
   });
 };

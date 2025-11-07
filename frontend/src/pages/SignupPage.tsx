@@ -1,6 +1,8 @@
 import { type FormEvent, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '../components/AuthCard';
+import { buildPath } from '../components/Path';
+import { storeToken } from '../tokenStorage';
 
 type SignupForm = {
   fullName: string;
@@ -26,6 +28,9 @@ export default function SignupPage() {
   const [formData, setFormData] = useState<SignupForm>(initialFormState);
   const [errors, setErrors] = useState<SignupErrors>({});
   const [touched, setTouched] = useState<SignupTouched>({});
+  const [serverMessage, setServerMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const isFormValid = useMemo(() => Object.values(errors).every((value) => !value) && Object.keys(touched).length === Object.keys(formData).length, [errors, touched]);
 
@@ -79,7 +84,7 @@ export default function SignupPage() {
     setErrors((prev) => ({ ...prev, [field]: validateField(field, value, formData) }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextTouched: SignupTouched = {};
     (Object.keys(formData) as Array<keyof SignupForm>).forEach((key) => {
@@ -90,9 +95,53 @@ export default function SignupPage() {
     const validationErrors = validateForm(formData);
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
-      // TODO: integrate POST /auth/register
-      console.log('Registering user with payload:', formData);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    const [firstName, ...rest] = formData.fullName.trim().split(/\s+/);
+    const lastName = rest.length > 0 ? rest.join(' ') : '';
+
+    const payload = {
+      firstName,
+      lastName: lastName || firstName,
+      login: formData.email.trim(),
+      password: formData.password,
+    };
+
+    try {
+      setIsSubmitting(true);
+      setServerMessage(null);
+
+      const response = await fetch(buildPath('api/auth/register'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMessage = data?.error || 'Unable to create account right now.';
+        throw new Error(errorMessage);
+      }
+
+      storeToken(data);
+      localStorage.setItem(
+        'user_data',
+        JSON.stringify({ firstName, lastName: lastName || firstName, id: data.id }),
+      );
+      navigate('/auth/success', {
+        state: { from: 'signup', firstName },
+        replace: true,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+      setServerMessage(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,6 +156,17 @@ export default function SignupPage() {
       <div className="pointer-events-none absolute inset-x-6 top-12 h-64 rounded-full bg-gradient-to-br from-[#FF7A18]/20 via-[#FF2D55]/20 to-[#7B2FFF]/30 blur-3xl" aria-hidden />
       <AuthCard title="Create your LoopU account" subtitle="Step into the feed and never miss what’s next on campus.">
         <form className="space-y-5" noValidate onSubmit={handleSubmit}>
+          {serverMessage ? (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm ${
+                serverMessage.startsWith('Account created')
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                  : 'border-rose-200 bg-rose-50 text-rose-600'
+              }`}
+            >
+              {serverMessage}
+            </div>
+          ) : null}
           <div>
             <label htmlFor="fullName" className="text-sm font-medium text-slate-700">
               Full Name
@@ -162,7 +222,7 @@ export default function SignupPage() {
               onChange={handleChange('email')}
               onBlur={handleBlur('email')}
             />
-            <p className={`mt-1 text-xs ${errors.email ? 'text-rose-500' : 'text-slate-400'}`}>We&apos;ll verify this to keep the community safe.</p>
+            <p className={`mt-1 text-xs ${errors.email ? 'text-rose-500' : 'text-slate-400'}`}>We&apos;ll verify this to keep the community safe, and it will be your login.</p>
             {errors.email ? <p className="mt-1 text-xs text-rose-500">{errors.email}</p> : null}
           </div>
 
@@ -208,9 +268,9 @@ export default function SignupPage() {
           <button
             type="submit"
             className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF7A18] via-[#FF2D55] to-[#7B2FFF] px-4 py-3 text-sm font-semibold text-white shadow-brand transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A18] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!isFormValid && Object.keys(touched).length > 0}
+            disabled={isSubmitting || (!isFormValid && Object.keys(touched).length > 0)}
           >
-            Create Account
+            {isSubmitting ? 'Creating…' : 'Create Account'}
           </button>
 
           <p className="text-center text-sm text-slate-600">

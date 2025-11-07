@@ -41,7 +41,7 @@ export default function HeroSection() {
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
               See what&apos;s happening on campus <span className="gradient-text">in real time.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slat e-600">
               LoopU lets you discover events, RSVP instantly, and never miss a night worth remembering. Follow the orgs you love and stay in sync with your campus.
             </p>
           </div>

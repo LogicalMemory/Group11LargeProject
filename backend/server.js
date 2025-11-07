@@ -15,7 +15,12 @@ app.use(express.json());
 var api = require('./load_api');
 api.loadApi(app,client);
 
+app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-app.listen(5000, () => {
-    console.log('Server running successfully');
-  }); // start Node + Express server on port 5000
+const PORT = process.env.PORT || 5050;
+
+app.listen(PORT, () => {
+    console.log(`Server running successfully on port ${PORT}`);
+});
