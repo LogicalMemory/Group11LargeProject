@@ -17,6 +17,9 @@ var api = require('./load_api');
 api.loadApi(app, client);
 console.log('API routes loaded!');
 
+app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 app.listen(5000, '0.0.0.0', () => {
     console.log('Server running successfully on http://0.0.0.0:5000');

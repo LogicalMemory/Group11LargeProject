@@ -32,11 +32,32 @@ exports.isExpired = function (token) {
   return isError;
 };
 exports.refresh = function (token) {
+  try {
+    var ud = jwt.decode(token, { complete: true });
+    if (!ud || !ud.payload) {
+      throw new Error('Invalid token payload');
+    }
+
+    var userId = ud.payload.userId ?? ud.payload.id;
+    var firstName = ud.payload.firstName;
+    var lastName = ud.payload.lastName;
+
+    if (!userId) {
+      throw new Error('Missing user id in token');
+    }
+
+    return _createToken(firstName, lastName, userId);
+  } catch (e) {
+    return { error: e.message };
+  }
+};
+
+exports.getUserFromToken = function (token) {
+  if (exports.isExpired(token)) {
+    return null;
+  }
   var ud = jwt.decode(token, { complete: true });
-  var userId = ud.payload.id;
-  var firstName = ud.payload.firstName;
-  var lastName = ud.payload.lastName;
-  return _createToken(firstName, lastName, userId);
+  return ud.payload;
 };
 
 exports.getUserFromToken = function (token) {
