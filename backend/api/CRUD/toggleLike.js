@@ -7,6 +7,9 @@ const normalizeEventId = (eventId) => {
   return eventId;
 };
 
+// export helper for tests
+exports.normalizeEventId = normalizeEventId;
+
 exports.setApp = function (app, client, api_path) {
   app.post(api_path, async (req, res) => {
     try {

@@ -31,15 +31,18 @@ exports.setApp = function (app, client, api_path) {
 			// Only allow owner to delete their event
 			const filter = { EventId: queryEventId, EventOwnerId: userId };
 
-			const deleted = await events.findOneAndDelete(filter);
+					const deleted = await events.findOneAndDelete(filter);
 
-			const refreshedToken = jwtHelper.refresh(token);
+					const refreshedToken = jwtHelper.refresh(token);
 
-			if (!deleted) {
-				return res.status(404).json({ error: 'Event not found or not owned by user', token: refreshedToken });
-			}
+					// `findOneAndDelete` returns an object with a `value` property containing the deleted doc,
+					// or `null` if nothing matched. Check `deleted.value` instead of the wrapper object.
+					if (!deleted || !deleted.value) {
+						return res.status(404).json({ error: 'Event not found or not owned by user', token: refreshedToken });
+					}
 
-			return res.status(200).json({ token: refreshedToken });
+					// return the deleted event object along with refreshed token
+					return res.status(200).json({ token: refreshedToken, eventObject: deleted.value });
 		} catch (err) {
 			console.error("Error in /api/deleteEvent:", err);
 			res.status(500).json({ error: "Server error" });
