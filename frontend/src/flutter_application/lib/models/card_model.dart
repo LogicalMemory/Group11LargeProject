@@ -65,7 +65,7 @@ class CardModel {
       userId = json['userId'] ?? json['user'] ?? '';
       likes = json['likes'] is int ? json['likes'] as int : null;
       comments = json['comments'] as List<dynamic>?;
-      location = json['location'] ?? null;
+      location = json['location'];
     }
 
     return CardModel(

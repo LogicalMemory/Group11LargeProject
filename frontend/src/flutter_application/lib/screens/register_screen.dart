@@ -143,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _handleController,
                         decoration: const InputDecoration(
                           labelText: 'Handle / Username',
-                          hintText: 'e.g. @loopulife',
+                          hintText: 'e.g. @loopULife',
                         ),
                       ),
                       const SizedBox(height: 12),
