@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/login_screen.dart';
 import 'screens/card_screen.dart';
+import 'screens/home_screen.dart';
 import 'services/auth_service.dart';
 
 void main() {
@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'Group 11 Project',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
           primary: Colors.blue,
@@ -31,8 +32,8 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
           elevation: 4,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
                   body: Center(child: CircularProgressIndicator()),
                 );
               }
-              return snapshot.data == true ? const CardScreen() : const LoginScreen();
+              return snapshot.data == true ? const CardScreen() : const HomeScreen();
             },
           );
         },

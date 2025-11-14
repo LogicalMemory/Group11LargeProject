@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/widgets/gradient_text.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'card_screen.dart';
@@ -14,15 +15,25 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _loginController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _message = '';
   bool _isLoading = false;
 
   Future<void> _doLogin() async {
-    if (_loginController.text.isEmpty || _passwordController.text.isEmpty) {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _message = 'Please enter both login and password';
+      });
+      return;
+    }
+
+    // Basic email format check
+    final emailRegex = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+");
+    if (!emailRegex.hasMatch(email)) {
+      setState(() {
+        _message = 'Please enter a valid email address';
       });
       return;
     }
@@ -35,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final authService = context.read<AuthService>();
       final result = await authService.login(
-        _loginController.text,
+        email,
         _passwordController.text,
       );
 
@@ -72,11 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFEEF2FF), Color(0xFFF8FAFF)],
-                ),
+                color: Colors.white,
               ),
               child: Center(
                 child: SingleChildScrollView(
@@ -89,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
+                          color: Colors.black.withValues(alpha: 0.06),
                           blurRadius: 18,
                           spreadRadius: 4,
                         ),
@@ -98,40 +105,54 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Welcome Back',
+                        const GradientText(
+                          text: 'Welcome back to LoopU',
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F172A),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Log in to see tonight’s events, RSVP, and keep the loop alive.',
+                          style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                        ),
+                        const SizedBox(height: 16),
                         TextField(
-                          controller: _loginController,
+                          controller: _emailController,
                           decoration: const InputDecoration(
-                            labelText: 'Login',
-                            prefixIcon: Icon(Icons.person),
+                            border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                            labelText: 'Email',
+                            hintText: 'YourUcfEmail@ucf.edu',
                           ),
+                          keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _passwordController,
                           decoration: const InputDecoration(
+                            border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                             labelText: 'Password',
-                            prefixIcon: Icon(Icons.lock),
+                            hintText: 'Your password',
                           ),
                           obscureText: true,
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
-                          width: double.infinity,
-                          child: _isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : GradientButton(
-                                  onPressed: _doLogin,
-                                  child: const Text('Login', style: TextStyle(fontSize: 16)),
-                                ),
+                          height: 48,
+                          child: Center(
+                            child: SizedBox(
+                              width: 280,
+                              child: _isLoading
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : GradientButton(
+                                      onPressed: _doLogin,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      child: const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                    ),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         TextButton(
@@ -140,7 +161,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               MaterialPageRoute(builder: (_) => const RegisterScreen()),
                             );
                           },
-                          child: const Text("Don't have an account? Register"),
+                          child: RichText(
+                            text: TextSpan(
+                              style: const TextStyle(color: Colors.black),
+                              children: [
+                                const TextSpan(text: "Don't have an account? "),
+                                TextSpan(
+                                  text: 'Sign Up',
+                                  style: const TextStyle(color: Color(0xFFFF2D55), fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         if (_message.isNotEmpty)
                           Padding(
@@ -167,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _loginController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }

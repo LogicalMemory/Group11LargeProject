@@ -9,10 +9,10 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(999),
-      child: Ink(
+      child: Container(
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.centerLeft,
@@ -22,17 +22,19 @@ class GradientButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           boxShadow: [
             BoxShadow(
-              color: Colors.purple.withOpacity(0.15),
+              color: Colors.purple.withValues(alpha: 0.15),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: Padding(
-          padding: padding,
-          child: DefaultTextStyle(
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            child: Center(child: child),
+        padding: padding,
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [child],
           ),
         ),
       ),

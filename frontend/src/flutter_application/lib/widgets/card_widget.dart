@@ -27,13 +27,19 @@ class _CardWidgetState extends State<CardWidget> {
     setState(() => _isLiking = true);
     try {
       final updated = await _service.toggleLike(_card.id);
-      setState(() {
-        _card = updated;
-      });
+      if (mounted) {
+        setState(() {
+          _card = updated;
+        });
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Like failed: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Like failed: $e')));
+      }
     } finally {
-      setState(() => _isLiking = false);
+      if (mounted) {
+        setState(() => _isLiking = false);
+      }
     }
   }
 
@@ -41,18 +47,21 @@ class _CardWidgetState extends State<CardWidget> {
   Widget build(BuildContext context) {
     final dateText = _card.date.toLocal().toString().split(' ')[0];
     return Card(
-      elevation: 8,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.white, Colors.grey.shade100],
-          ),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -66,9 +75,9 @@ class _CardWidgetState extends State<CardWidget> {
                     child: Text(
                       _card.title,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Colors.black87,
                       ),
                     ),
                   ),
@@ -76,30 +85,39 @@ class _CardWidgetState extends State<CardWidget> {
                     dateText,
                     style: TextStyle(
                       color: Colors.grey[600],
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               if ((_card.location ?? '').isNotEmpty)
-                Row(
-                  children: [
-                    const Icon(Icons.place, size: 16, color: Colors.grey),
-                    const SizedBox(width: 6),
-                    Text(
-                      _card.location ?? '',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.place, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      Text(
+                        _card.location ?? '',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 _card.description,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   color: Colors.black87,
+                  height: 1.4,
                 ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 16),
               Row(
@@ -109,31 +127,45 @@ class _CardWidgetState extends State<CardWidget> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.redAccent,
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                      elevation: 0,
+                      side: const BorderSide(color: Colors.redAccent),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () {
-                      // RSVP placeholder - web frontend has RSVP behavior; here we show a confirmation.
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('RSVP sent')));
                     },
-                    child: const Text('RSVP'),
+                    child: const Text('RSVP', style: TextStyle(fontSize: 13)),
                   ),
                   Row(
                     children: [
-                      Text((_card.likes ?? 0).toString()),
+                      Text(
+                        (_card.likes ?? 0).toString(),
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                        ),
+                      ),
                       IconButton(
                         icon: _isLiking
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.favorite, color: Colors.pink),
+                            : Icon(
+                                _card.likes != null && _card.likes! > 0 ? Icons.favorite : Icons.favorite_border,
+                                color: Colors.pink,
+                                size: 20,
+                              ),
                         onPressed: _toggleLike,
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                       const SizedBox(width: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.comment, color: Colors.indigo),
-                          const SizedBox(width: 4),
-                          Text((_card.comments?.length ?? 0).toString()),
-                        ],
+                      Icon(Icons.comment_outlined, color: Colors.grey[600], size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        (_card.comments?.length ?? 0).toString(),
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   )

@@ -36,14 +36,8 @@ exports.loadApi = function (app, client) {
 
     // Remove .js extension
     var endpoint_name = element.slice(0, -required_prefix.length);
-
     // Convert Windows backslashes to forward slashes for URL path
     var endpoint_path = '/' + endpoint_name.replace(/\\/g, '/');
-
-    console.log(`\nProcessing file: ${element}`);
-    console.log(`Endpoint name: ${endpoint_name}`);
-    console.log(`Endpoint path: ${endpoint_path}`);
-    console.log(`Requiring: ./${endpoint_name}`);
 
     try {
       var api_endpoint = require('./' + endpoint_name);

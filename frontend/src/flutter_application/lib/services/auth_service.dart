@@ -6,12 +6,12 @@ class AuthService {
   static const String baseUrl = 'http://localhost:5000';
   final TokenStorage _tokenStorage = TokenStorage();
 
-  Future<Map<String, dynamic>> login(String login, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'login': login, 'password': password}),
+        body: json.encode({'login': email, 'password': password}),
       );
 
       if (response.statusCode == 200) {
