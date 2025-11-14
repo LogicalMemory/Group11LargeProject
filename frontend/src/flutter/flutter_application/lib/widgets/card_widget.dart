@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
 import '../models/card_model.dart';
+import '../services/card_service.dart';
 
-class CardWidget extends StatelessWidget {
+class CardWidget extends StatefulWidget {
   final CardModel card;
 
   const CardWidget({super.key, required this.card});
 
   @override
+  State<CardWidget> createState() => _CardWidgetState();
+}
+
+class _CardWidgetState extends State<CardWidget> {
+  late CardModel _card;
+  final CardService _service = CardService();
+  bool _isLiking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _card = widget.card;
+  }
+
+  Future<void> _toggleLike() async {
+    if (_isLiking) return;
+    setState(() => _isLiking = true);
+    try {
+      final updated = await _service.toggleLike(_card.id);
+      setState(() {
+        _card = updated;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Like failed: $e')));
+    } finally {
+      setState(() => _isLiking = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final dateText = _card.date.toLocal().toString().split(' ')[0];
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -32,7 +64,7 @@ class CardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      card.title,
+                      _card.title,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -41,7 +73,7 @@ class CardWidget extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    card.date.toString().split(' ')[0],
+                    dateText,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -49,9 +81,21 @@ class CardWidget extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              if ((_card.location ?? '').isNotEmpty)
+                Row(
+                  children: [
+                    const Icon(Icons.place, size: 16, color: Colors.grey),
+                    const SizedBox(width: 6),
+                    Text(
+                      _card.location ?? '',
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 12),
               Text(
-                card.description,
+                _card.description,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black87,
@@ -59,20 +103,40 @@ class CardWidget extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.redAccent,
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                    ),
                     onPressed: () {
-                      // TODO: Implement edit functionality
+                      // RSVP placeholder - web frontend has RSVP behavior; here we show a confirmation.
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('RSVP sent')));
                     },
+                    child: const Text('RSVP'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      // TODO: Implement delete functionality
-                    },
-                  ),
+                  Row(
+                    children: [
+                      Text((_card.likes ?? 0).toString()),
+                      IconButton(
+                        icon: _isLiking
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.favorite, color: Colors.pink),
+                        onPressed: _toggleLike,
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.comment, color: Colors.indigo),
+                          const SizedBox(width: 4),
+                          Text((_card.comments?.length ?? 0).toString()),
+                        ],
+                      ),
+                    ],
+                  )
                 ],
               ),
             ],
