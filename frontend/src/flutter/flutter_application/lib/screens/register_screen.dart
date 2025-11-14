@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'card_screen.dart';
+import '../widgets/navbar.dart';
+import '../widgets/gradient_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -66,54 +68,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'First name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Last name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _loginController,
-                decoration: const InputDecoration(labelText: 'Login'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: _doRegister,
-                        child: const Text('Register'),
+      body: Column(
+        children: [
+          const Navbar(),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: isSmallScreen ? null : 520,
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 16,
+                        spreadRadius: 4,
                       ),
-              ),
-              if (_message.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    _message,
-                    style: const TextStyle(color: Colors.red),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _firstNameController,
+                        decoration: const InputDecoration(labelText: 'First name'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _lastNameController,
+                        decoration: const InputDecoration(labelText: 'Last name'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _loginController,
+                        decoration: const InputDecoration(labelText: 'Login'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(labelText: 'Password'),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : GradientButton(
+                                onPressed: _doRegister,
+                                child: const Text('Register'),
+                              ),
+                      ),
+                      if (_message.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            _message,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-            ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

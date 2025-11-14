@@ -17,8 +17,16 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Extract the actual JWT string
-        final token = data['token']?['accessToken'];
+        // Backend may return token as an object { accessToken: '...' } or directly
+        dynamic tokenField = data['token'] ?? data['token'] ?? data['accessToken'] ?? data['accessToken'];
+        String? token;
+        if (tokenField is Map && tokenField['accessToken'] is String) {
+          token = tokenField['accessToken'];
+        } else if (tokenField is String) {
+          token = tokenField;
+        } else if (data['token'] is String) {
+          token = data['token'];
+        }
 
         if (token != null) {
           await _tokenStorage.saveToken(token);
@@ -62,7 +70,15 @@ class AuthService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
 
-        final token = data['token']?['accessToken'];
+        dynamic tokenField = data['token'] ?? data['accessToken'];
+        String? token;
+        if (tokenField is Map && tokenField['accessToken'] is String) {
+          token = tokenField['accessToken'];
+        } else if (tokenField is String) {
+          token = tokenField;
+        } else if (data['token'] is String) {
+          token = data['token'];
+        }
 
         if (token != null) {
           await _tokenStorage.saveToken(token);
