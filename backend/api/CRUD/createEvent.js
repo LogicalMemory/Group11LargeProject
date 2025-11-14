@@ -5,7 +5,7 @@ exports.setApp = function (app, client, api_path) {
     try {
       // incoming: token, eventTitle, eventDescription, eventTime, eventDuration, EventLocation
       // outgoing: token, eventObject OR error
-      const { token, eventTitle, eventDescription, eventTime, eventDuration, eventLocation } = req.body;
+      const { token, eventTitle, eventDescription, eventTime, eventDuration, eventLocation, eventImageUrl} = req.body;
 
       if (!token || !eventTitle || !eventDescription || !eventTime || !eventDuration) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -34,7 +34,8 @@ exports.setApp = function (app, client, api_path) {
         EventDescription: eventDescription,
         EventTime: eventTime,
         EventDuration: eventDuration,
-        EventLocation: eventLocation
+        EventLocation: eventLocation,
+        EventImageUrl: eventImageUrl || null
       };
 
       await events.insertOne(newEvent);
