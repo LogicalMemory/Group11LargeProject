@@ -866,7 +866,7 @@ export default function DashboardPage() {
                                   <div className="flex gap-3">
                                     {comment.AuthorImageUrl ? (
                                       <img
-                                        src={toAbsoluteUrl(comment.AuthorImageUrl)}
+                                        src={toAbsoluteUrl(comment.AuthorImageUrl) ?? undefined}
                                         alt={comment.AuthorName}
                                         className="h-8 w-8 rounded-full border border-slate-200 object-cover"
                                       />
