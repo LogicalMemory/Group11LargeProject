@@ -115,13 +115,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Log in to see tonight’s events, RSVP, and keep the loop alive.',
+                          'Log in to see events, RSVP, & stay in the loop',
                           style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _emailController,
+                          cursorColor: Colors.black,
                           decoration: const InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                            ),
                             border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                             labelText: 'Email',
                             hintText: 'YourUcfEmail@ucf.edu',
@@ -131,7 +135,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         TextField(
                           controller: _passwordController,
+                          cursorColor: Colors.black,
                           decoration: const InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                            ),
                             border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                             labelText: 'Password',
                             hintText: 'Your password',

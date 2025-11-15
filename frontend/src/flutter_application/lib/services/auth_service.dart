@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'token_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
 
 class AuthService {
   static const String baseUrl = 'http://localhost:5000';
@@ -116,4 +119,32 @@ class AuthService {
   Future<String?> getToken() async {
     return await _tokenStorage.getToken();
   }
+
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+  try {
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'auth_token');
+    
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+
+    // Check if token is expired
+    if (JwtDecoder.isExpired(token)) {
+      return null;
+    }
+
+    // Decode the token to get user information
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    
+    return {
+      'userId': decodedToken['userId'],
+      'firstName': decodedToken['firstName'],
+      'lastName': decodedToken['lastName'],
+    };
+  } catch (e) {
+    print('Error getting current user: $e');
+    return null;
+  }
+}
 }
