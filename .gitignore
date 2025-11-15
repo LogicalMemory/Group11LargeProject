@@ -3,7 +3,7 @@ backend/node_modules/
 frontend/dist/
 frontend/node_modules/
 backend/uploads/
-
+backend/api/auth/sendgrid.env
 
 # Logs
 logs
