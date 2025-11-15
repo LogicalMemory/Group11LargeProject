@@ -1,53 +1,42 @@
+const fs = require("fs");
+const path = require("path");
+
 exports.loadApi = function (app, client) {
-  const fs = require('fs');
-  const path = require('path');
+  const baseDir = path.join(__dirname, "api");
 
-  function listFilesRecursive(directoryPath) {
-    let filesList = [];
+  console.log("\n==== Loading API Routes ====\n");
 
-    function walkDir(currentPath) {
-      const items = fs.readdirSync(currentPath);
+  function loadRoutes(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-      for (const item of items) {
-        const itemPath = path.join(currentPath, item);
-        const stat = fs.statSync(itemPath);
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
 
-        if (stat.isFile()) {
-          filesList.push(itemPath);
-        } else if (stat.isDirectory()) {
-          walkDir(itemPath); // Recursively call for subdirectories
-        }
+      // go through subdirectories
+      if (entry.isDirectory()) {
+        loadRoutes(fullPath);
+        continue;
+      }
+
+      // Only load .js files
+      if (!entry.name.endsWith(".js")) continue;
+
+      // Build API endpoint path
+      const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
+      const endpointPath = "/api/" + relativePath.replace(/\.js$/, "");
+
+      try {
+        const routeModule = require(fullPath);
+        routeModule.setApp(app, client, endpointPath);
+        console.log(`Registered route: ${endpointPath}`);
+      } catch (err) {
+        console.error(`ERROR LOADING ${relativePath}:`);
+        // console.error(err.message); // error message
       }
     }
-
-    walkDir(directoryPath);
-    return filesList;
   }
 
-  const targetDirectory = './api';
-  const allFiles = listFilesRecursive(targetDirectory);
+  loadRoutes(baseDir);
 
-  console.log('\n=== Loading API Routes ===');
-  console.log('Files found:', allFiles);
-
-  allFiles.forEach(element => {
-    const required_prefix = ".js";
-    if (!element.endsWith(required_prefix)) return;
-
-    // Remove .js extension
-    var endpoint_name = element.slice(0, -required_prefix.length);
-    // Convert Windows backslashes to forward slashes for URL path
-    var endpoint_path = '/' + endpoint_name.replace(/\\/g, '/');
-
-    try {
-      var api_endpoint = require('./' + endpoint_name);
-      console.log(`Module loaded, calling setApp with path: ${endpoint_path}`);
-      api_endpoint.setApp(app, client, endpoint_path);
-      console.log(`✓ Successfully registered: ${endpoint_path}`);
-    } catch (err) {
-      console.error(`✗ Error loading ${element}:`, err.message);
-    }
-  });
-
-  console.log('\n=== All API routes processing complete ===\n');
+  console.log("\n==== All API routes processed ====\n");
 };
