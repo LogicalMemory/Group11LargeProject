@@ -23,6 +23,7 @@ exports.setApp = function (app, client, api_path) {
 
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
+      const users = db.collection('Users');
 
       let query = {};
 
@@ -69,6 +70,39 @@ exports.setApp = function (app, client, api_path) {
 
       const cursor = events.find(query).skip(sk).limit(lim);
       const found_events = await cursor.toArray();
+
+      if (found_events.length > 0) {
+        const ownerIdSet = new Set();
+        found_events.forEach((event) => {
+          if (event.EventOwnerId !== undefined && event.EventOwnerId !== null) {
+            ownerIdSet.add(Number(event.EventOwnerId));
+          }
+        });
+
+        const numericOwnerIds = Array.from(ownerIdSet).filter((id) => !Number.isNaN(id));
+        if (numericOwnerIds.length > 0) {
+          const owners = await users.find({ UserId: { $in: numericOwnerIds } }).toArray();
+          const ownerMap = new Map();
+          owners.forEach((owner) => {
+            ownerMap.set(owner.UserId, owner.ProfileImageUrl || null);
+          });
+
+          found_events.forEach((event) => {
+            const key = Number(event.EventOwnerId);
+            if (!Number.isNaN(key) && ownerMap.has(key)) {
+              event.OwnerProfileImageUrl = ownerMap.get(key);
+            } else if (event.OwnerProfileImageUrl === undefined) {
+              event.OwnerProfileImageUrl = null;
+            }
+          });
+        } else {
+          found_events.forEach((event) => {
+            if (event.OwnerProfileImageUrl === undefined) {
+              event.OwnerProfileImageUrl = null;
+            }
+          });
+        }
+      }
       const totalCount = await events.countDocuments(query);
 
       const refreshedToken = jwtHelper.refresh(token);

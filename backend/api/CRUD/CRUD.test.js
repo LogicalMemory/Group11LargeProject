@@ -28,6 +28,27 @@ function makeMockApp() {
   };
 }
 
+function makeClientMock(eventsCollection, usersCollection) {
+  const defaultUsers =
+    usersCollection ||
+    {
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockReturnValue({ toArray: async () => [] }),
+      updateOne: jest.fn(),
+      updateMany: jest.fn(),
+    };
+
+  return {
+    db: () => ({
+      collection: (name) => {
+        if (name === 'Events') return eventsCollection;
+        if (name === 'Users') return defaultUsers;
+        return eventsCollection;
+      },
+    }),
+  };
+}
+
 // Silence expected console output from handlers during tests for this file
 beforeAll(() => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -75,7 +96,7 @@ describe('readEvent handler', () => {
 
     const app = makeMockApp();
     const mockEvents = { findOne: jest.fn().mockResolvedValue(null) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const req = { body: { token: 'good', eventId: '5' } };
     const res = makeMockRes();
@@ -98,7 +119,7 @@ describe('readEvent handler', () => {
       if (q.EventId === 3) return eventObj;
       return null;
     }) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     const req = { body: { token: 'good', eventId: '3' } };
@@ -118,7 +139,7 @@ describe('readEvent handler', () => {
 
     const eventObj = { EventId: 'abc', EventTitle: 'StringId' };
     const mockEvents = { findOne: jest.fn().mockResolvedValue(eventObj) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     const req = { body: { token: 'good', eventId: 'abc' } };
@@ -152,7 +173,7 @@ describe('createEvent handler', () => {
 
     const app = makeMockApp();
     const mockEvents = { find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => [] }) }) }), insertOne: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     createEventModule.setApp(app, mockClient, '/api/create');
 
     const res = makeMockRes();
@@ -171,7 +192,8 @@ describe('createEvent handler', () => {
       find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => [] }) }) }),
       insertOne: jest.fn().mockResolvedValue({ insertedId: 1 })
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockUsers = { findOne: jest.fn().mockResolvedValue({ ProfileImageUrl: 'pic.png' }) };
+    const mockClient = makeClientMock(mockEvents, mockUsers);
 
     const app = makeMockApp();
     createEventModule.setApp(app, mockClient, '/api/create');
@@ -210,7 +232,7 @@ describe('createEvent handler', () => {
       find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => [{ EventId: 10 }] }) }) }),
       insertOne: jest.fn().mockResolvedValue({ insertedId: 123 })
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     createEventModule.setApp(app, mockClient, '/api/create');
@@ -259,7 +281,7 @@ describe('updateEvent handler', () => {
     jwtHelper.refresh.mockReturnValue('r');
 
     const mockEvents = { updateOne: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     updateEventModule.setApp(app, mockClient, '/api/update');
 
@@ -276,7 +298,7 @@ describe('updateEvent handler', () => {
 
     const app = makeMockApp();
     const mockEvents = { updateOne: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     updateEventModule.setApp(app, mockClient, '/api/update');
 
     const res = makeMockRes();
@@ -293,7 +315,7 @@ describe('updateEvent handler', () => {
     jwtHelper.refresh.mockReturnValue('r');
 
     const mockEvents = { updateOne: jest.fn().mockResolvedValue({ matchedCount: 0 }) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     updateEventModule.setApp(app, mockClient, '/api/update');
 
@@ -313,7 +335,7 @@ describe('updateEvent handler', () => {
       updateOne: jest.fn().mockResolvedValue({ matchedCount: 1 }),
       findOne: jest.fn().mockResolvedValue(updatedEvent)
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     updateEventModule.setApp(app, mockClient, '/api/update');
 
@@ -336,7 +358,7 @@ describe('updateEvent handler', () => {
       updateOne: jest.fn().mockImplementation(async (filter, update) => { capturedFilter = filter; capturedUpdate = update; return { matchedCount: 1 }; }),
       findOne: jest.fn().mockResolvedValue(updatedEvent)
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     updateEventModule.setApp(app, mockClient, '/api/update');
 
@@ -373,7 +395,7 @@ describe('deleteEvent handler', () => {
     jwtHelper.refresh.mockReturnValue('tok');
 
     const mockEvents = { findOneAndDelete: jest.fn().mockResolvedValue(null) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     deleteEventModule.setApp(app, mockClient, '/api/delete');
 
@@ -405,7 +427,7 @@ describe('deleteEvent handler', () => {
 
     const app = makeMockApp();
     const mockEvents = { findOneAndDelete: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     deleteEventModule.setApp(app, mockClient, '/api/delete');
 
     const res = makeMockRes();
@@ -422,7 +444,7 @@ describe('deleteEvent handler', () => {
     jwtHelper.refresh.mockReturnValue('tok');
 
     const mockEvents = { findOneAndDelete: jest.fn().mockResolvedValue({ value: { EventId: 1 } }) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     deleteEventModule.setApp(app, mockClient, '/api/delete');
 
@@ -440,7 +462,7 @@ describe('deleteEvent handler', () => {
 
     let capturedFilter = null;
     const mockEvents = { findOneAndDelete: jest.fn().mockImplementation(async (filter) => { capturedFilter = filter; return { value: { EventId: 'abc' } }; }) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     deleteEventModule.setApp(app, mockClient, '/api/delete');
 
@@ -489,7 +511,7 @@ describe('searchEvents handler', () => {
     const eventsList = [{ EventId: 1 }, { EventId: 2 }];
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: () => mockCursor, countDocuments: jest.fn().mockResolvedValue(2) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -510,7 +532,7 @@ describe('searchEvents handler', () => {
     let capturedQuery = null;
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: jest.fn((q) => { capturedQuery = q; return mockCursor; }), countDocuments: jest.fn().mockResolvedValue(1) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -535,7 +557,7 @@ describe('searchEvents handler', () => {
     const eventsList = [{ EventId: 6 }];
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: jest.fn((q) => { capturedQuery = q; return mockCursor; }), countDocuments: jest.fn().mockResolvedValue(1) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -562,7 +584,7 @@ describe('searchEvents handler', () => {
     const eventsList = [{ EventId: 99 }];
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: jest.fn((q) => { capturedQuery = q; return mockCursor; }), countDocuments: jest.fn().mockResolvedValue(1) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -584,7 +606,7 @@ describe('searchEvents handler', () => {
     const eventsList = [{ EventId: 11 }];
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: () => mockCursor, countDocuments: jest.fn().mockResolvedValue(1) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -606,7 +628,7 @@ describe('searchEvents handler', () => {
     const eventsList = [{ EventId: 10 }];
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => eventsList };
     const mockEvents = { find: () => mockCursor, countDocuments: jest.fn().mockResolvedValue(1) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -626,7 +648,7 @@ describe('searchEvents handler', () => {
 
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => [] };
     const mockEvents = { find: () => mockCursor, countDocuments: jest.fn().mockResolvedValue(0) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
 
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
@@ -650,7 +672,7 @@ describe('error and edge cases to improve coverage', () => {
       find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => [] }) }) }),
       insertOne: jest.fn().mockRejectedValue(new Error('db down'))
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     createEventModule.setApp(app, mockClient, '/api/create');
 
@@ -665,7 +687,7 @@ describe('error and edge cases to improve coverage', () => {
   test('readEvent returns 500 when DB findOne throws', async () => {
     jwtHelper.isExpired.mockReturnValue(false);
     const mockEvents = { findOne: jest.fn().mockRejectedValue(new Error('boom')) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     readEventModule.setApp(app, mockClient, '/api/readEvent');
 
@@ -682,7 +704,7 @@ describe('error and edge cases to improve coverage', () => {
     jwtHelper.getUserFromToken.mockReturnValue({ userId: 2 });
 
     const mockEvents = { updateOne: jest.fn().mockRejectedValue(new Error('fail')) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     updateEventModule.setApp(app, mockClient, '/api/update');
 
@@ -699,7 +721,7 @@ describe('error and edge cases to improve coverage', () => {
     jwtHelper.getUserFromToken.mockReturnValue({ userId: 3 });
 
     const mockEvents = { findOneAndDelete: jest.fn().mockRejectedValue(new Error('oh no')) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     deleteEventModule.setApp(app, mockClient, '/api/delete');
 
@@ -718,7 +740,7 @@ describe('error and edge cases to improve coverage', () => {
     // make cursor.toArray throw
     const mockCursor = { skip: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), toArray: async () => { throw new Error('bad cursor'); } };
     const mockEvents = { find: () => mockCursor, countDocuments: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
 
@@ -742,7 +764,7 @@ describe('error and edge cases to improve coverage', () => {
       find: jest.fn((q) => { capturedQuery = q; return mockCursor; }),
       countDocuments: jest.fn().mockResolvedValue(1)
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = makeClientMock(mockEvents);
     const app = makeMockApp();
     searchEventsModule.setApp(app, mockClient, '/api/search');
 
@@ -769,4 +791,3 @@ describe('error and edge cases to improve coverage', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ limit: 100, skip: 0, token: 'rtok' }));
   });
 });
-

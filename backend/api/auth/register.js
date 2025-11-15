@@ -33,7 +33,8 @@ exports.setApp = function (app, client, api_path) {
         FirstName: firstName,
         LastName: lastName,
         Login: login,
-        PasswordHash: passwordHash
+        PasswordHash: passwordHash,
+        ProfileImageUrl: null
       };
 
       await users.insertOne(newUser);
@@ -45,6 +46,8 @@ exports.setApp = function (app, client, api_path) {
         id: nextId,
         firstName,
         lastName,
+        email: login,
+        profileImageUrl: null,
         token: tokenPayload.token || tokenPayload
       });
 

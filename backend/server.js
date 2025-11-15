@@ -10,6 +10,9 @@ const url = process.env.MONGODB_URI;
 const client = new MongoClient(url);
 client.connect();
 
+const HOST = process.env.HOST || '0.0.0.0';
+const PORT = parseInt(process.env.PORT || '5000', 10);
+
 app.use(cors());
 app.use(express.json());
 
@@ -24,7 +27,7 @@ app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.listen(5000, '0.0.0.0', () => {
-    console.log('Server running successfully on http://0.0.0.0:5000');
+app.listen(PORT, HOST, () => {
+    console.log(`Server running successfully on http://${HOST}:${PORT}`);
   }
-); // start Node + Express server on port 5000
+); // start Node + Express server

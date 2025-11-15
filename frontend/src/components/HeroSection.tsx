@@ -59,19 +59,7 @@ export default function HeroSection() {
               Log in
             </Link>
           </div>
-          <div className="flex items-center gap-3 text-sm text-slate-500">
-            <div className="flex -space-x-2 overflow-hidden">
-              {[...Array(4)].map((_, index) => (
-                <div
-                  key={index}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-[#FF7A18] via-[#FF2D55] to-[#7B2FFF] text-[10px] font-semibold text-white"
-                >
-                  {['SJ', 'AM', 'CL', 'KD'][index]}
-                </div>
-              ))}
-            </div>
-            <span>Trusted by campus orgs across the country</span>
-          </div>
+          <div className="flex items-center gap-3 text-sm text-slate-500" aria-hidden />
         </div>
         <div className="w-full md:w-1/2">
           <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl shadow-[#7B2FFF1A]">
@@ -80,7 +68,6 @@ export default function HeroSection() {
                 <p className="text-sm font-semibold text-slate-500">Today on LoopU</p>
                 <h3 className="text-lg font-semibold text-slate-900">Your personalized feed</h3>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">Live</span>
             </div>
             <div className="mt-6 space-y-4">
               {mockEvents.map((event) => (
@@ -108,25 +95,19 @@ export default function HeroSection() {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#FF2D55] shadow-sm ring-1 ring-inset ring-[#FF2D55]/20 transition hover:bg-[#FF2D55] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A18]"
+                        <Link
+                          to="/signup"
+                          className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A18]"
                         >
-                          RSVP
-                        </button>
+                          Join the loop
+                        </Link>
                         <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
-                          <span className="inline-flex items-center gap-1">
-                            <svg className="h-4 w-4 text-rose-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.098 3.75 3 5.765 3 8.25c0 7.22 7.312 11.25 9 11.25s9-4.03 9-11.25z" />
-                            </svg>
-                            {event.likes}
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <svg className="h-4 w-4 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3h5.25m-2.691 7.888L12 21.75l1.941-2.612a11.954 11.954 0 005.145-6.08A11.966 11.966 0 0021 8.25c0-1.518-.27-2.973-.764-4.312A48.1 48.1 0 0012 3c-3.08 0-6.03.168-8.236.938A11.966 11.966 0 003 8.25c0 1.966.474 3.82 1.314 5.458a11.953 11.953 0 005.145 6.08z" />
-                            </svg>
-                            {event.comments}
-                          </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+                          ❤️ {event.likes}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+                          💬 {event.comments}
+                        </span>
                         </div>
                       </div>
                     </div>

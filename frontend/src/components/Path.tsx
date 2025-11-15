@@ -1,5 +1,5 @@
 const appName = 'nicholasfoutch.xyz';
-const LOCAL_API_BASE = 'http://localhost:5050/';
+const LOCAL_API_BASE = 'http://localhost:5000/';
 
 export function buildPath(route: string): string {
   if (process.env.NODE_ENV !== 'development') {

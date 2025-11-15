@@ -25,6 +25,15 @@ function makeMockApp() {
   };
 }
 
+function createMockClient(eventsCollection, usersCollection) {
+  const defaultUsers = usersCollection || { findOne: jest.fn().mockResolvedValue({ ProfileImageUrl: null }) };
+  return {
+    db: () => ({
+      collection: (name) => (name === 'Users' ? defaultUsers : eventsCollection),
+    }),
+  };
+}
+
 // Silence expected console output from handlers under test in this file
 beforeAll(() => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -74,7 +83,7 @@ describe('addComment handler', () => {
 
     const app = makeMockApp();
     const mockEvents = { findOneAndUpdate: jest.fn() };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockClient = createMockClient(mockEvents);
     addCommentModule.setApp(app, mockClient, '/api/addComment');
 
     const res = makeMockRes();
@@ -91,7 +100,8 @@ describe('addComment handler', () => {
     jwtHelper.refresh.mockReturnValue('r');
 
     const mockEvents = { findOneAndUpdate: jest.fn().mockResolvedValue(null), findOne: jest.fn().mockResolvedValue(null) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockUsers = { findOne: jest.fn().mockResolvedValue({ ProfileImageUrl: 'img.png' }) };
+    const mockClient = createMockClient(mockEvents, mockUsers);
     const app = makeMockApp();
     addCommentModule.setApp(app, mockClient, '/api/addComment');
 
@@ -115,7 +125,8 @@ describe('addComment handler', () => {
     const mockEvents = {
       findOneAndUpdate: jest.fn().mockImplementation(async (query, update, opts) => { capturedQuery = query; capturedPush = update.$push; return { value: returnedEvent }; })
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockUsers = { findOne: jest.fn().mockResolvedValue({ ProfileImageUrl: 'https://img/profile.png' }) };
+    const mockClient = createMockClient(mockEvents, mockUsers);
 
     const app = makeMockApp();
     addCommentModule.setApp(app, mockClient, '/api/addComment');
@@ -149,7 +160,8 @@ describe('addComment handler', () => {
       findOneAndUpdate: jest.fn().mockResolvedValue(null),
       findOne: jest.fn().mockResolvedValue(returnedEvent),
     };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockUsers = { findOne: jest.fn().mockResolvedValue({ ProfileImageUrl: null }) };
+    const mockClient = createMockClient(mockEvents, mockUsers);
     const app = makeMockApp();
     addCommentModule.setApp(app, mockClient, '/api/addComment');
 
@@ -170,7 +182,8 @@ describe('addComment handler', () => {
     jwtHelper.getUserFromToken.mockReturnValue({ userId: 1 });
 
     const mockEvents = { findOneAndUpdate: jest.fn().mockRejectedValue(new Error('db oops')) };
-    const mockClient = { db: () => ({ collection: () => mockEvents }) };
+    const mockUsers = { findOne: jest.fn().mockResolvedValue(null) };
+    const mockClient = createMockClient(mockEvents, mockUsers);
     const app = makeMockApp();
     addCommentModule.setApp(app, mockClient, '/api/addComment');
 

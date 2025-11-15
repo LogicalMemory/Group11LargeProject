@@ -87,7 +87,7 @@ describe('auth handlers (login & register)', () => {
     });
 
     test('200 on success when createToken returns object with token prop', async () => {
-      const user = { PasswordHash: 'hash', FirstName: 'F', LastName: 'L', UserId: 3 };
+      const user = { PasswordHash: 'hash', FirstName: 'F', LastName: 'L', UserId: 3, Login: 'f@example.com' };
       const mockUsers = { findOne: jest.fn().mockResolvedValue(user) };
       const mockClient = { db: () => ({ collection: () => mockUsers }) };
       bcrypt.compare.mockResolvedValue(true);
@@ -100,11 +100,18 @@ describe('auth handlers (login & register)', () => {
 
       expect(jwtHelper.createToken).toHaveBeenCalledWith('F', 'L', 3);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ id: 3, firstName: 'F', lastName: 'L', token: 'tkn_obj' });
+      expect(res.json).toHaveBeenCalledWith({
+        id: 3,
+        firstName: 'F',
+        lastName: 'L',
+        email: 'f@example.com',
+        profileImageUrl: null,
+        token: 'tkn_obj',
+      });
     });
 
     test('200 on success when createToken returns string', async () => {
-      const user = { PasswordHash: 'hash', FirstName: 'X', LastName: 'Y', UserId: 4 };
+      const user = { PasswordHash: 'hash', FirstName: 'X', LastName: 'Y', UserId: 4, Login: 'x@example.com' };
       const mockUsers = { findOne: jest.fn().mockResolvedValue(user) };
       const mockClient = { db: () => ({ collection: () => mockUsers }) };
       bcrypt.compare.mockResolvedValue(true);
@@ -117,7 +124,14 @@ describe('auth handlers (login & register)', () => {
 
       expect(jwtHelper.createToken).toHaveBeenCalledWith('X', 'Y', 4);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ id: 4, firstName: 'X', lastName: 'Y', token: 'tkn_str' });
+      expect(res.json).toHaveBeenCalledWith({
+        id: 4,
+        firstName: 'X',
+        lastName: 'Y',
+        email: 'x@example.com',
+        profileImageUrl: null,
+        token: 'tkn_str',
+      });
     });
 
     test('500 when DB findOne throws', async () => {
@@ -175,7 +189,14 @@ describe('auth handlers (login & register)', () => {
       expect(bcrypt.hash).toHaveBeenCalledWith('p', 10);
       expect(mockUsers.insertOne).toHaveBeenCalledWith(expect.objectContaining({ UserId: 1, FirstName: 'F', LastName: 'L', Login: 'new@x.com', PasswordHash: 'phash' }));
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ id: 1, firstName: 'F', lastName: 'L', token: 'newtok' });
+      expect(res.json).toHaveBeenCalledWith({
+        id: 1,
+        firstName: 'F',
+        lastName: 'L',
+        email: 'new@x.com',
+        profileImageUrl: null,
+        token: 'newtok',
+      });
       // sendgrid called asynchronously; ensure setApiKey and send were called
       expect(sgMail.setApiKey).toHaveBeenCalled();
       expect(sgMail.send).toHaveBeenCalled();
@@ -201,7 +222,14 @@ describe('auth handlers (login & register)', () => {
 
       expect(mockUsers.insertOne).toHaveBeenCalledWith(expect.objectContaining({ UserId: 6 }));
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ id: 6, firstName: 'G', lastName: 'H', token: 'tokstr' });
+      expect(res.json).toHaveBeenCalledWith({
+        id: 6,
+        firstName: 'G',
+        lastName: 'H',
+        email: 'x@y.com',
+        profileImageUrl: null,
+        token: 'tokstr',
+      });
     });
 
     test('sendgrid rejection is handled (catch exercised)', async () => {
@@ -224,7 +252,14 @@ describe('auth handlers (login & register)', () => {
 
       // response should be sent successfully despite sendgrid rejecting
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ id: 1, firstName: 'S', lastName: 'G', token: 'tok3' });
+      expect(res.json).toHaveBeenCalledWith({
+        id: 1,
+        firstName: 'S',
+        lastName: 'G',
+        email: 'sg@x.com',
+        profileImageUrl: null,
+        token: 'tok3',
+      });
       // send called and its rejection should cause console.error in the handler (no throw)
       expect(sgMail.send).toHaveBeenCalled();
     });

@@ -30,13 +30,23 @@ exports.setApp = function (app, client, api_path) {
 
       const db = client.db('COP4331Cards');
       const events = db.collection('Events');
+      const usersCollection = db.collection('Users');
 
       const queryEventId = normalizeEventId(eventId);
+
+      let profileImageUrl = null;
+      try {
+        const userDoc = await usersCollection.findOne({ UserId: user.userId });
+        profileImageUrl = userDoc?.ProfileImageUrl || null;
+      } catch (lookupErr) {
+        console.error('Unable to lookup user profile image', lookupErr);
+      }
 
       const newComment = {
         CommentId: Date.now(),
         AuthorId: user.userId,
         AuthorName: `${user.firstName ?? 'LoopU'} ${user.lastName ?? ''}`.trim(),
+        AuthorImageUrl: profileImageUrl,
         Text: commentText.trim(),
         CreatedAt: new Date().toISOString(),
       };

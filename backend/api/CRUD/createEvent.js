@@ -17,6 +17,7 @@ exports.setApp = function (app, client, api_path) {
 
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
+      const users = db.collection('Users');
 
       const lastEvent = await events.find().sort({ EventId: -1 }).limit(1).toArray();
       const nextId = lastEvent.length > 0 ? lastEvent[0].EventId + 1 : 1;
@@ -27,6 +28,9 @@ exports.setApp = function (app, client, api_path) {
         return res.status(401).json({ error: 'Invalid token' });
       }
 
+      const ownerDoc = await users.findOne({ UserId: userId });
+      const ownerImageUrl = ownerDoc?.ProfileImageUrl || null;
+
       const newEvent = {
         EventId: nextId,
         EventOwnerId: userId,
@@ -35,7 +39,8 @@ exports.setApp = function (app, client, api_path) {
         EventTime: eventTime,
         EventDuration: eventDuration,
         EventLocation: eventLocation,
-        EventImageUrl: eventImageUrl || null
+        EventImageUrl: eventImageUrl || null,
+        OwnerProfileImageUrl: ownerImageUrl
       };
 
       await events.insertOne(newEvent);

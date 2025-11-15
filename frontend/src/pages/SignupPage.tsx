@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '../components/AuthCard';
 import { buildPath } from '../components/Path';
@@ -30,9 +30,22 @@ export default function SignupPage() {
   const [touched, setTouched] = useState<SignupTouched>({});
   const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [profileImageError, setProfileImageError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const isFormValid = useMemo(() => Object.values(errors).every((value) => !value) && Object.keys(touched).length === Object.keys(formData).length, [errors, touched]);
+
+  useEffect(() => {
+    if (!profileImageFile) {
+      setProfileImagePreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(profileImageFile);
+    setProfileImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [profileImageFile]);
 
   const validateField = (field: keyof SignupForm, value: string, currentData: SignupForm): string => {
     if (!value.trim()) {
@@ -84,6 +97,22 @@ export default function SignupPage() {
     setErrors((prev) => ({ ...prev, [field]: validateField(field, value, formData) }));
   };
 
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0] ?? null;
+    if (!file) {
+      setProfileImageFile(null);
+      setProfileImageError(null);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileImageError('Please choose an image smaller than 5MB.');
+      event.currentTarget.value = '';
+      return;
+    }
+    setProfileImageError(null);
+    setProfileImageFile(file);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextTouched: SignupTouched = {};
@@ -129,10 +158,62 @@ export default function SignupPage() {
       }
 
       storeToken(data);
+
+      let profileImageUrl = data.profileImageUrl ?? null;
+
+      const extractTokenString = (tokenPayload: unknown): string | null => {
+        if (!tokenPayload) return null;
+        if (typeof tokenPayload === 'string') return tokenPayload;
+        if (typeof tokenPayload === 'object' && 'accessToken' in (tokenPayload as Record<string, unknown>)) {
+          const value = (tokenPayload as { accessToken?: unknown }).accessToken;
+          return typeof value === 'string' ? value : null;
+        }
+        return null;
+      };
+
+      if (profileImageFile) {
+        const authToken = extractTokenString((data as Record<string, unknown>).token);
+        if (authToken) {
+          try {
+            const uploadFormData = new FormData();
+            uploadFormData.append('image', profileImageFile);
+            uploadFormData.append('token', authToken);
+
+            const uploadResponse = await fetch(buildPath('api/auth/uploadProfilePhoto'), {
+              method: 'POST',
+              body: uploadFormData,
+            });
+            const uploadData = await uploadResponse.json().catch(() => ({}));
+            if (!uploadResponse.ok || uploadData?.error) {
+              throw new Error(uploadData?.error || 'Unable to upload profile photo.');
+            }
+            if (uploadData.token) {
+              storeToken(uploadData.token);
+            }
+            profileImageUrl = uploadData.profileImageUrl ?? profileImageUrl;
+            setProfileImageError(null);
+          } catch (uploadErr) {
+            const uploadMessage =
+              uploadErr instanceof Error ? uploadErr.message : 'Failed to upload profile photo.';
+            setProfileImageError(uploadMessage);
+          }
+        } else {
+          setProfileImageError('Could not verify your session to upload the photo.');
+        }
+      }
+
       localStorage.setItem(
         'user_data',
-        JSON.stringify({ firstName, lastName: lastName || firstName, id: data.id }),
+        JSON.stringify({
+          firstName,
+          lastName: lastName || firstName,
+          id: data.id,
+          email: formData.email.trim(),
+          profileImageUrl,
+        }),
       );
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
       navigate('/auth/success', {
         state: { from: 'signup', firstName },
         replace: true,
@@ -263,6 +344,34 @@ export default function SignupPage() {
               onBlur={handleBlur('confirmPassword')}
             />
             {errors.confirmPassword ? <p className="mt-1 text-xs text-rose-500">{errors.confirmPassword}</p> : <p className="mt-1 text-xs text-slate-400">We&apos;ll double-check that everything matches.</p>}
+          </div>
+
+          <div>
+            <label htmlFor="profileImage" className="text-sm font-medium text-slate-700">
+              Profile photo (optional)
+            </label>
+            {profileImagePreview ? (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-100">
+                <img src={profileImagePreview} alt="Profile preview" className="h-32 w-full object-cover" />
+              </div>
+            ) : null}
+            <label className="mt-3 inline-flex w-full cursor-pointer items-center justify-center rounded-full border border-dashed border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#FF7A18]">
+              <input
+                id="profileImage"
+                name="profileImage"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfileImageChange}
+                disabled={isSubmitting}
+              />
+              {profileImageFile ? 'Choose another image' : 'Upload a profile photo'}
+            </label>
+            {profileImageError ? (
+              <p className="mt-1 text-xs text-rose-500">{profileImageError}</p>
+            ) : (
+              <p className="mt-1 text-xs text-slate-400">PNG, JPG, or WEBP up to 5MB.</p>
+            )}
           </div>
 
           <button

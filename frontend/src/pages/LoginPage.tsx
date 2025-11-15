@@ -60,10 +60,15 @@ export default function LoginPage() {
       }
 
       storeToken(data);
-      localStorage.setItem(
-        'user_data',
-        JSON.stringify({ firstName: data.firstName, lastName: data.lastName, id: data.id }),
-      );
+
+      const storedUser = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        id: data.id ?? data.userId,
+        email: data.email || formData.email.trim(),
+        profileImageUrl: data.profileImageUrl ?? null,
+      };
+      localStorage.setItem('user_data', JSON.stringify(storedUser));
       navigate('/auth/success', {
         state: { from: 'login', firstName: data.firstName },
         replace: true,

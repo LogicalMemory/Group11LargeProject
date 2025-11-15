@@ -24,25 +24,36 @@ function Login() {
         headers: { "Content-Type": "application/json" },
       });
       var res = JSON.parse(await response.text());
-      const { accessToken } = res;
-      storeToken( res );
+      const tokenString = res.accessToken || (res.token && (res.token.accessToken || res.token)) || '';
+      if (!tokenString) {
+        setMessage('Unable to retrieve access token from server.');
+        return;
+      }
+      storeToken(res);
 
       interface MyToken {
           iat: number;
           firstName: string;
           lastName: string;
+          userId?: number;
       }
-      const decoded = jwtDecode<MyToken>(accessToken);
+      const decoded = jwtDecode<MyToken>(tokenString);
 
       try {
         var ud = decoded;
-        var userId = ud.iat;
+        var userId = (ud as any).userId ?? ud.iat;
         var firstName = ud.firstName;
         var lastName = ud.lastName;
         if (userId <= 0) {
           setMessage("User/Password combination incorrect");
         } else {
-          var user = { firstName: firstName, lastName: lastName, id: userId };
+          var user = {
+            firstName: firstName,
+            lastName: lastName,
+            id: userId,
+            email: res.email || loginName,
+            profileImageUrl: res.profileImageUrl ?? null,
+          };
           localStorage.setItem("user_data", JSON.stringify(user));
           setMessage("");
           window.location.href = "/cards";

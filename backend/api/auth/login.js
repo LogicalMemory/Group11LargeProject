@@ -26,16 +26,29 @@ exports.setApp = function (app, client, api_path) {
         return res.status(401).json({ error: "Login/Password incorrect" });
       }
 
+      const userId =
+        typeof user.UserId === 'number'
+          ? user.UserId
+          : user._id
+          ? user._id.toString()
+          : null;
+
+      if (!userId) {
+        return res.status(500).json({ error: 'Unable to determine user id' });
+      }
+
       const token = jwtHelper.createToken(
         user.FirstName,
         user.LastName,
-        user.UserId,
+        userId,
       );
 
       return res.status(200).json({
-        id: user.UserId,
+        id: userId,
         firstName: user.FirstName,
         lastName: user.LastName,
+        email: user.Login,
+        profileImageUrl: user.ProfileImageUrl || null,
         token: token.token || token,
       });
     } catch (err) {

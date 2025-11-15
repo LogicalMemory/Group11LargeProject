@@ -5,7 +5,7 @@ exports.setApp = function (app, client, api_path) {
 		try {
 			// incoming: token, eventId, optional fields to update
 			// outgoing: token, eventObject OR error
-			const { token, eventId, eventTitle, eventDescription, eventTime, eventDuration, eventLocation } = req.body;
+			const { token, eventId, eventTitle, eventDescription, eventTime, eventDuration, eventLocation, eventImageUrl } = req.body;
 
 			if (!token || (eventId === undefined || eventId === null || eventId === "")) {
 				return res.status(400).json({ error: 'Missing required fields' });
@@ -35,6 +35,7 @@ exports.setApp = function (app, client, api_path) {
 			if (eventTime !== undefined) updateFields.EventTime = eventTime;
 			if (eventDuration !== undefined) updateFields.EventDuration = eventDuration;
 			if (eventLocation !== undefined) updateFields.EventLocation = eventLocation;
+			if (eventImageUrl !== undefined) updateFields.EventImageUrl = eventImageUrl || null;
 
 			if (Object.keys(updateFields).length === 0) {
 				const refreshedToken = jwtHelper.refresh(token);
