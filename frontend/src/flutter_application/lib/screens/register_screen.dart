@@ -127,13 +127,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Step into the feed and never miss what’s next on campus.',
+                        'Step into the feed - never miss what’s happening',
                         style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _fullNameController,
+                        cursorColor: Colors.black,
                         decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                          ),
                           labelText: 'Full name',
                           hintText: 'Jordan Alvarez',
                         ),
@@ -141,7 +145,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _handleController,
+                        cursorColor: Colors.black,
                         decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                          ),
                           labelText: 'Handle / Username',
                           hintText: 'e.g. @loopULife',
                         ),
@@ -149,7 +157,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _emailController,
+                        cursorColor: Colors.black,
                         decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                          ),
                           labelText: 'School email',
                           hintText: 'YourUCFEmail@ucf.edu',
                         ),
@@ -158,7 +170,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _passwordController,
+                        cursorColor: Colors.black,
                         decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                          ),
                           labelText: 'Password',
                           hintText: 'at least 8 characters',
                         ),
@@ -167,7 +183,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _confirmPasswordController,
+                        cursorColor: Colors.black,
                         decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFF7A18), width: 2.0),
+                          ),
                           labelText: 'Confirm password',
                           hintText: 're-enter your password',
                         ),

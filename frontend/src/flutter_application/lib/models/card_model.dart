@@ -1,3 +1,39 @@
+class CommentModel {
+  final int? commentId;
+  final int? authorId;
+  final String? authorName;
+  final String? text;
+  final String? createdAt;
+
+  CommentModel({
+    this.commentId,
+    this.authorId,
+    this.authorName,
+    this.text,
+    this.createdAt,
+  });
+
+  factory CommentModel.fromJson(Map<String, dynamic> json) {
+    return CommentModel(
+      commentId: json['CommentId'] as int?,
+      authorId: json['AuthorId'] as int?,
+      authorName: json['AuthorName'] as String?,
+      text: json['Text'] as String?,
+      createdAt: json['CreatedAt'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'CommentId': commentId,
+      'AuthorId': authorId,
+      'AuthorName': authorName,
+      'Text': text,
+      'CreatedAt': createdAt,
+    };
+  }
+}
+
 class CardModel {
   // Backwards compatible model that can represent both the simple card used
   // previously and the richer "event" records returned by the web frontend.
@@ -9,9 +45,11 @@ class CardModel {
 
   // Additional fields used by the event API
   final int? likes;
-  final List<dynamic>? comments;
+  final List<CommentModel>? comments;
   final String? location;
   final int? ownerId;
+  final String? eventDuration;
+  final List<dynamic>? likedBy;
 
   const CardModel({
     required this.id,
@@ -23,6 +61,8 @@ class CardModel {
     this.comments,
     this.location,
     this.ownerId,
+    this.eventDuration,
+    this.likedBy,
   });
 
   factory CardModel.fromJson(Map<String, dynamic> json) {
@@ -34,9 +74,11 @@ class CardModel {
     DateTime date = DateTime.now();
     String userId = '';
     int? likes;
-    List<dynamic>? comments;
+    List<CommentModel>? comments;
     String? location;
     int? ownerId;
+    String? eventDuration;
+    List<dynamic>? likedBy;
 
     if (json.containsKey('EventId')) {
       id = (json['EventId'] ?? '').toString();
@@ -49,9 +91,23 @@ class CardModel {
         date = DateTime.now();
       }
       location = json['EventLocation'] ?? '';
+      eventDuration = json['EventDuration']?.toString();
       likes = json['Likes'] is int ? json['Likes'] as int : (json['likes'] is int ? json['likes'] as int : null);
-      comments = json['Comments'] as List<dynamic>? ?? json['comments'] as List<dynamic>?;
+      
+      // Parse comments if they exist
+      if (json['Comments'] != null) {
+        comments = (json['Comments'] as List<dynamic>)
+            .map((c) => CommentModel.fromJson(c as Map<String, dynamic>))
+            .toList();
+      } else if (json['comments'] != null) {
+        comments = (json['comments'] as List<dynamic>)
+            .map((c) => CommentModel.fromJson(c as Map<String, dynamic>))
+            .toList();
+      }
+      
+      likedBy = json['LikedBy'] as List<dynamic>? ?? json['likedBy'] as List<dynamic>?;
       ownerId = json['EventOwnerId'] is int ? json['EventOwnerId'] as int : null;
+      userId = ownerId?.toString() ?? '';
     } else {
       id = json['_id'] ?? (json['id']?.toString() ?? '');
       title = json['title'] ?? '';
@@ -64,8 +120,18 @@ class CardModel {
       }
       userId = json['userId'] ?? json['user'] ?? '';
       likes = json['likes'] is int ? json['likes'] as int : null;
-      comments = json['comments'] as List<dynamic>?;
+      
+      // Parse comments for legacy format
+      if (json['comments'] != null) {
+        comments = (json['comments'] as List<dynamic>)
+            .map((c) => CommentModel.fromJson(c as Map<String, dynamic>))
+            .toList();
+      }
+      
       location = json['location'];
+      eventDuration = json['eventDuration']?.toString() ?? json['EventDuration']?.toString();
+      likedBy = json['likedBy'] as List<dynamic>? ?? json['LikedBy'] as List<dynamic>?;
+      ownerId = json['ownerId'] is int ? json['ownerId'] as int : (json['EventOwnerId'] is int ? json['EventOwnerId'] as int : null);
     }
 
     return CardModel(
@@ -78,6 +144,8 @@ class CardModel {
       comments: comments,
       location: location,
       ownerId: ownerId,
+      eventDuration: eventDuration,
+      likedBy: likedBy,
     );
   }
 
@@ -89,13 +157,18 @@ class CardModel {
       'date': date.toIso8601String(),
       'userId': userId,
       'likes': likes,
-      'comments': comments,
+      'comments': comments?.map((c) => c.toJson()).toList(),
       'location': location,
       'EventId': id,
       'EventTitle': title,
       'EventDescription': description,
       'EventTime': date.toIso8601String(),
       'EventLocation': location,
+      'EventDuration': eventDuration,
+      'EventOwnerId': ownerId,
+      'Likes': likes,
+      'LikedBy': likedBy,
+      'Comments': comments?.map((c) => c.toJson()).toList(),
     };
   }
 }

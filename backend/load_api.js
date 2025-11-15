@@ -30,7 +30,7 @@ exports.loadApi = function (app, client) {
         routeModule.setApp(app, client, endpointPath);
         console.log(`Registered route: ${endpointPath}`);
       } catch (err) {
-        console.error(`ERROR LOADING ${relativePath}:`);
+        console.error(`\x1b[31mERROR LOADING: ${relativePath}\x1b[0m`);
         // console.error(err.message); // error message
       }
     }
