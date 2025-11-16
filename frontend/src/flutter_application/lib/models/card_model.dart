@@ -2,6 +2,7 @@ class CommentModel {
   final int? commentId;
   final int? authorId;
   final String? authorName;
+  final String? authorImageUrl;
   final String? text;
   final String? createdAt;
 
@@ -9,6 +10,7 @@ class CommentModel {
     this.commentId,
     this.authorId,
     this.authorName,
+    this.authorImageUrl,
     this.text,
     this.createdAt,
   });
@@ -18,6 +20,7 @@ class CommentModel {
       commentId: json['CommentId'] as int?,
       authorId: json['AuthorId'] as int?,
       authorName: json['AuthorName'] as String?,
+      authorImageUrl: json['AuthorImageUrl'] as String?,
       text: json['Text'] as String?,
       createdAt: json['CreatedAt'] as String?,
     );
@@ -28,6 +31,7 @@ class CommentModel {
       'CommentId': commentId,
       'AuthorId': authorId,
       'AuthorName': authorName,
+      'AuthorImageUrl': authorImageUrl,
       'Text': text,
       'CreatedAt': createdAt,
     };
@@ -50,6 +54,8 @@ class CardModel {
   final int? ownerId;
   final String? eventDuration;
   final List<dynamic>? likedBy;
+  final String? eventImageUrl;
+  final String? ownerProfileImageUrl;
 
   const CardModel({
     required this.id,
@@ -63,6 +69,8 @@ class CardModel {
     this.ownerId,
     this.eventDuration,
     this.likedBy,
+    this.eventImageUrl,
+    this.ownerProfileImageUrl,
   });
 
   factory CardModel.fromJson(Map<String, dynamic> json) {
@@ -79,6 +87,8 @@ class CardModel {
     int? ownerId;
     String? eventDuration;
     List<dynamic>? likedBy;
+    String? eventImageUrl;
+    String? ownerProfileImageUrl;
 
     if (json.containsKey('EventId')) {
       id = (json['EventId'] ?? '').toString();
@@ -108,6 +118,8 @@ class CardModel {
       likedBy = json['LikedBy'] as List<dynamic>? ?? json['likedBy'] as List<dynamic>?;
       ownerId = json['EventOwnerId'] is int ? json['EventOwnerId'] as int : null;
       userId = ownerId?.toString() ?? '';
+      eventImageUrl = json['EventImageUrl'] as String?;
+      ownerProfileImageUrl = json['OwnerProfileImageUrl'] as String?;
     } else {
       id = json['_id'] ?? (json['id']?.toString() ?? '');
       title = json['title'] ?? '';
@@ -132,6 +144,8 @@ class CardModel {
       eventDuration = json['eventDuration']?.toString() ?? json['EventDuration']?.toString();
       likedBy = json['likedBy'] as List<dynamic>? ?? json['LikedBy'] as List<dynamic>?;
       ownerId = json['ownerId'] is int ? json['ownerId'] as int : (json['EventOwnerId'] is int ? json['EventOwnerId'] as int : null);
+      eventImageUrl = json['eventImageUrl'] as String? ?? json['EventImageUrl'] as String?;
+      ownerProfileImageUrl = json['ownerProfileImageUrl'] as String? ?? json['OwnerProfileImageUrl'] as String?;
     }
 
     return CardModel(
@@ -146,6 +160,8 @@ class CardModel {
       ownerId: ownerId,
       eventDuration: eventDuration,
       likedBy: likedBy,
+      eventImageUrl: eventImageUrl,
+      ownerProfileImageUrl: ownerProfileImageUrl,
     );
   }
 
@@ -169,6 +185,8 @@ class CardModel {
       'Likes': likes,
       'LikedBy': likedBy,
       'Comments': comments?.map((c) => c.toJson()).toList(),
+      'EventImageUrl': eventImageUrl,
+      'OwnerProfileImageUrl': ownerProfileImageUrl,
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/card_model.dart';
 import 'token_storage.dart';
@@ -17,6 +18,36 @@ class CardService {
     return {
       'Content-Type': 'application/json',
     }..addAll(token != null ? {'Authorization': 'Bearer $token'} : {});
+  }
+
+  // Upload event image (returns image URL)
+  Future<String> uploadEventImage(File imageFile) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/api/CRUD/uploadPhoto'),
+      );
+
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = json.decode(responseBody);
+        if (data['imageUrl'] != null) {
+          return data['imageUrl'] as String;
+        } else {
+          throw Exception('No image URL in response');
+        }
+      } else {
+        throw Exception('Failed to upload image: $responseBody');
+      }
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
   }
 
   // Search / retrieve events (maps to api/CRUD/searchEvents)
@@ -46,7 +77,14 @@ class CardService {
     }
   }
 
-  Future<CardModel> createCard(String title, String description, {String? time, String? duration, String? location}) async {
+  Future<CardModel> createCard(
+    String title,
+    String description, {
+    String? time,
+    String? duration,
+    String? location,
+    String? eventImageUrl,
+  }) async {
     try {
       final token = await _getToken();
       final body = {
@@ -56,6 +94,7 @@ class CardService {
         'eventTime': time ?? DateTime.now().toIso8601String(),
         'eventDuration': duration ?? '60',
         'eventLocation': location ?? '',
+        'eventImageUrl': eventImageUrl,
       };
 
       final response = await http.post(
