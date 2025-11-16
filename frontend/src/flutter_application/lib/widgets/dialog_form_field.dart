@@ -1,0 +1,32 @@
+import 'package:flutter/material.dart';
+
+class DialogFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String? hint;
+  final int maxLines;
+  final TextInputType? keyboardType;
+
+  const DialogFormField({
+    super.key,
+    required this.controller,
+    required this.label,
+    this.hint,
+    this.maxLines = 1,
+    this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        hintText: hint,
+      ),
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+    );
+  }
+}

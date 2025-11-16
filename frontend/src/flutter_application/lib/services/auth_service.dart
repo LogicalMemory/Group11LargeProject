@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'token_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
 
 class AuthService {
   static const String baseUrl = 'http://localhost:5000';
@@ -41,6 +41,7 @@ class AuthService {
             'id': data['id'],
             'firstName': data['firstName'],
             'lastName': data['lastName'],
+            'profileImageUrl': data['profileImageUrl'],
           },
         };
       } else {
@@ -93,6 +94,7 @@ class AuthService {
             'id': data['id'],
             'firstName': data['firstName'],
             'lastName': data['lastName'],
+            'profileImageUrl': data['profileImageUrl'],
           },
         };
       } else {
@@ -104,6 +106,49 @@ class AuthService {
       }
     } catch (e) {
       return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  // Upload profile photo
+  Future<String> uploadProfilePhoto(File imageFile) async {
+    try {
+      final token = await _tokenStorage.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/api/auth/uploadProfilePhoto'),
+      );
+
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
+      
+      request.fields['token'] = token;
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = json.decode(responseBody);
+        
+        // Update token if provided
+        if (data['token'] != null) {
+          await _tokenStorage.saveToken(data['token']);
+        }
+        
+        if (data['profileImageUrl'] != null) {
+          return data['profileImageUrl'] as String;
+        } else {
+          throw Exception('No profile image URL in response');
+        }
+      } else {
+        throw Exception('Failed to upload profile photo: $responseBody');
+      }
+    } catch (e) {
+      throw Exception('Failed to upload profile photo: $e');
     }
   }
 
@@ -121,30 +166,31 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>?> getCurrentUser() async {
-  try {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'auth_token');
-    
-    if (token == null || token.isEmpty) {
+    try {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'auth_token');
+
+      if (token == null || token.isEmpty) {
+        return null;
+      }
+
+      // Check if token is expired
+      if (JwtDecoder.isExpired(token)) {
+        return null;
+      }
+
+      // Decode the token to get user information
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+      return {
+        'userId': decodedToken['userId'],
+        'firstName': decodedToken['firstName'],
+        'lastName': decodedToken['lastName'],
+        'profileImageUrl': decodedToken['profileImageUrl'],
+      };
+    } catch (e) {
+      print('Error getting current user: $e');
       return null;
     }
-
-    // Check if token is expired
-    if (JwtDecoder.isExpired(token)) {
-      return null;
-    }
-
-    // Decode the token to get user information
-    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    
-    return {
-      'userId': decodedToken['userId'],
-      'firstName': decodedToken['firstName'],
-      'lastName': decodedToken['lastName'],
-    };
-  } catch (e) {
-    print('Error getting current user: $e');
-    return null;
   }
-}
 }
