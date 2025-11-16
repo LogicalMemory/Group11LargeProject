@@ -11,11 +11,11 @@ import '../services/card_service.dart';
 import '../services/auth_service.dart';
 import '../services/card_actions.dart';
 import '../services/image_service.dart';
-import '../services/notification_service.dart';  // NEW
+import '../services/notification_service.dart';
 import '../dialogs/add_card_dialog.dart';
 import '../dialogs/edit_card_dialog.dart';
-import '../utils/calendar_helper.dart';  // NEW
-import '../utils/snackbar_helper.dart';  // NEW
+import '../utils/calendar_helper.dart';
+import '../utils/snackbar_helper.dart';
 import 'login_screen.dart';
 
 

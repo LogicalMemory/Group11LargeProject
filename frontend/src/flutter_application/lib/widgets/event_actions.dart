@@ -31,11 +31,11 @@ class EventActions extends StatelessWidget {
               label: 'Add to Calendar',
               onPressed: onAddToCalendar,
             ),
-            _ActionButton(
-              icon: Icons.email_outlined,
-              label: isLoadingReminder ? 'Sending...' : 'Remind Me',
-              onPressed: isLoadingReminder ? null : onEmailReminder,
-            ),
+            // _ActionButton(
+            //   icon: Icons.email_outlined,
+            //   label: isLoadingReminder ? 'Sending...' : 'Remind Me',
+            //   onPressed: isLoadingReminder ? null : onEmailReminder,
+            // ),
           ],
         ),
         if (reminderMessage != null) ...[
