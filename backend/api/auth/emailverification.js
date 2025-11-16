@@ -11,7 +11,7 @@ function sendVerificationEmail(email) {
         from: 'loopu2025@gmail.com', // Change to your verified sender
         subject: 'LoopU: Verify Your Email',
         text: 'and easy to do anywhere, even with Node.js',
-        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+        html: 'Thanks for making a LoopU account!<br><br>Click <a href="https://nicholasfoutch.xyz/cards">here</a> to verify your email and get started with keeping connected with your campus.',
     }
     sgMail
     .send(msg)
