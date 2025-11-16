@@ -43,7 +43,7 @@ class SearchSection extends StatelessWidget {
                 child: TextField(
                   controller: searchController,
                   decoration: InputDecoration(
-                    hintText: '\"Carrier pigeon training lessons...\"',
+                    hintText: 'search for events',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   ),
@@ -57,7 +57,7 @@ class SearchSection extends StatelessWidget {
                 child: GradientButton(
                   onPressed: onSearch,
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  child: const Text('Search Events', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  child: const Text('Search', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
               ),
 
@@ -79,7 +79,7 @@ class SearchSection extends StatelessWidget {
                       onFilterChanged: onFilterChanged,
                     ),
                     FilterButton(
-                      label: 'All events',
+                      label: 'All',
                       value: 'all',
                       currentFilter: currentFilter,
                       onFilterChanged: onFilterChanged,

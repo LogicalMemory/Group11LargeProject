@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/gradient_text.dart';
-import '../widgets/gradient_button.dart';
 import '../widgets/profile_section.dart';
 import '../widgets/add_event_section.dart';
 import '../widgets/stats_section.dart';
@@ -12,8 +11,11 @@ import '../services/card_service.dart';
 import '../services/auth_service.dart';
 import '../services/card_actions.dart';
 import '../services/image_service.dart';
+import '../services/notification_service.dart';  // NEW
 import '../dialogs/add_card_dialog.dart';
 import '../dialogs/edit_card_dialog.dart';
+import '../utils/calendar_helper.dart';  // NEW
+import '../utils/snackbar_helper.dart';  // NEW
 import 'login_screen.dart';
 
 
@@ -31,6 +33,7 @@ class _CardScreenState extends State<CardScreen> {
   final AuthService _authService = AuthService();
   final CardActions _cardActions = CardActions();
   final ImageService _imageService = ImageService();
+  final NotificationService _notificationService = NotificationService();  // NEW
 
   // States
   final List<CardModel> _cards = [];
@@ -40,6 +43,8 @@ class _CardScreenState extends State<CardScreen> {
   String _searchMessage = '';
   String _viewFilter = 'mine';
   final Map<String, TextEditingController> _commentControllers = {};
+  final Map<String, bool> _reminderLoading = {};  // NEW
+  final Map<String, String> _reminderMessages = {};  // NEW
   String? _currentUserId;
   String? _currentUserName;
   String? _userProfileImageUrl;
@@ -266,6 +271,68 @@ class _CardScreenState extends State<CardScreen> {
   }
 
 
+  // ADD TO CALENDAR - NEW
+  Future<void> _addToCalendar(CardModel card) async {
+    try {
+      final success = await CalendarHelper.addToCalendar(card);
+      if (!mounted) return;
+      
+      if (success) {
+        SnackbarHelper.showSuccess(context, 'Opening calendar...');
+      } else {
+        SnackbarHelper.showError(context, 'Unable to open calendar app');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      SnackbarHelper.showError(context, 'Error opening calendar');
+    }
+  }
+
+
+  // EMAIL REMINDER - NEW
+  Future<void> _sendEmailReminder(CardModel card) async {
+    setState(() {
+      _reminderLoading[card.id] = true;
+      _reminderMessages[card.id] = 'Sending reminder...';
+    });
+
+    try {
+      final token = await _authService.getToken();
+      if (token == null) {
+        throw Exception('Please log in again to send reminders');
+      }
+
+      final result = await _notificationService.sendEventReminder(
+        token: token,
+        eventId: card.id,
+      );
+
+      if (!mounted) return;
+      
+      setState(() {
+        _reminderMessages[card.id] = result['message'] as String;
+      });
+
+      SnackbarHelper.showSuccess(context, 'Reminder sent! Check your email.');
+    } catch (e) {
+      if (!mounted) return;
+      
+      final message = e.toString().replaceAll('Exception: ', '');
+      setState(() {
+        _reminderMessages[card.id] = message;
+      });
+      
+      SnackbarHelper.showError(context, message);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _reminderLoading[card.id] = false;
+        });
+      }
+    }
+  }
+
+
   // LOGOUT
   Future<void> _logout() async {
     await _authService.logout();
@@ -308,16 +375,7 @@ class _CardScreenState extends State<CardScreen> {
             const SizedBox(width: 6),
             GradientText(
               text: 'U',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(width: 6),
-            const Text(
-              ' -  Dashboard',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0F172A),
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -405,6 +463,10 @@ class _CardScreenState extends State<CardScreen> {
                               onToggleLike: () => _toggleLike(card),
                               commentController: _commentControllers[card.id]!,
                               onAddComment: () => _addComment(card),
+                              onAddToCalendar: () => _addToCalendar(card),  // NEW
+                              onEmailReminder: () => _sendEmailReminder(card),  // NEW
+                              isLoadingReminder: _reminderLoading[card.id] ?? false,  // NEW
+                              reminderMessage: _reminderMessages[card.id],  // NEW
                             ),
                           );
                         }, childCount: _filteredCards.length),

@@ -6,6 +6,7 @@ import 'card_badges.dart';
 import 'card_engagement.dart';
 import 'comment_list.dart';
 import 'comment_input.dart';
+import 'event_actions.dart';
 
 class CardItem extends StatelessWidget {
   final CardModel card;
@@ -15,6 +16,10 @@ class CardItem extends StatelessWidget {
   final VoidCallback onToggleLike;
   final TextEditingController commentController;
   final VoidCallback onAddComment;
+  final VoidCallback? onAddToCalendar;
+  final VoidCallback? onEmailReminder;
+  final bool isLoadingReminder;
+  final String? reminderMessage;
 
   const CardItem({
     super.key,
@@ -25,6 +30,10 @@ class CardItem extends StatelessWidget {
     required this.onToggleLike,
     required this.commentController,
     required this.onAddComment,
+    this.onAddToCalendar,
+    this.onEmailReminder,
+    this.isLoadingReminder = false,
+    this.reminderMessage,
   });
 
   @override
@@ -65,12 +74,31 @@ class CardItem extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          CardEngagement(
-            likes: card.likes ?? 0,
-            likedByMe: card.likedBy?.isNotEmpty ?? false,
-            commentsCount: card.comments?.length ?? 0,
-            onToggleLike: onToggleLike,
+          Row(
+            children: [
+              CardEngagement(
+                likes: card.likes ?? 0,
+                likedByMe: card.likedBy?.isNotEmpty ?? false,
+                commentsCount: card.comments?.length ?? 0,
+                onToggleLike: onToggleLike,
+              ),
+
+              const SizedBox(width: 16),
+
+              if (onAddToCalendar != null || onEmailReminder != null) ...[
+                const SizedBox(height: 12),
+                EventActions(
+                  card: card,
+                  onAddToCalendar: onAddToCalendar ?? () {},
+                  onEmailReminder: onEmailReminder ?? () {},
+                  isLoadingReminder: isLoadingReminder,
+                  reminderMessage: reminderMessage,
+                ),
+              ],
+
+            ],
           ),
+
 
           CommentList(comments: card.comments ?? []),
 
