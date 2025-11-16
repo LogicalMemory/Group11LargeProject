@@ -30,6 +30,9 @@ exports.setApp = function (app, client, api_path) {
 
       const ownerDoc = await users.findOne({ UserId: userId });
       const ownerImageUrl = ownerDoc?.ProfileImageUrl || null;
+      const ownerName = ownerDoc
+        ? `${ownerDoc.FirstName ?? ''} ${ownerDoc.LastName ?? ''}`.trim() || ownerDoc.Login || 'LoopU Member'
+        : 'LoopU Member';
 
       const newEvent = {
         EventId: nextId,
@@ -40,7 +43,8 @@ exports.setApp = function (app, client, api_path) {
         EventDuration: eventDuration,
         EventLocation: eventLocation,
         EventImageUrl: eventImageUrl || null,
-        OwnerProfileImageUrl: ownerImageUrl
+        OwnerProfileImageUrl: ownerImageUrl,
+        OwnerName: ownerName
       };
 
       await events.insertOne(newEvent);
