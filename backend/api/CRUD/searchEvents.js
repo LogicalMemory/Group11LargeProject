@@ -23,8 +23,7 @@ exports.setApp = function (app, client, api_path) {
 
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
-      const users = db.collection('Users');
-      const users = db.collection('Users');
+      const users = client.db("COP4331Cards").collection('Users');
 
       let query = {};
 

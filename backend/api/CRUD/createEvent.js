@@ -18,7 +18,6 @@ exports.setApp = function (app, client, api_path) {
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
       const users = db.collection('Users');
-      const users = db.collection('Users');
 
       const lastEvent = await events.find().sort({ EventId: -1 }).limit(1).toArray();
       const nextId = lastEvent.length > 0 ? lastEvent[0].EventId + 1 : 1;
