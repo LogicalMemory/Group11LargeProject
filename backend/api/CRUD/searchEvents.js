@@ -24,6 +24,7 @@ exports.setApp = function (app, client, api_path) {
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
       const users = db.collection('Users');
+      const users = db.collection('Users');
 
       let query = {};
 
@@ -84,21 +85,37 @@ exports.setApp = function (app, client, api_path) {
           const owners = await users.find({ UserId: { $in: numericOwnerIds } }).toArray();
           const ownerMap = new Map();
           owners.forEach((owner) => {
-            ownerMap.set(owner.UserId, owner.ProfileImageUrl || null);
+            ownerMap.set(owner.UserId, {
+              profileImageUrl: owner.ProfileImageUrl || null,
+              ownerName:
+                `${owner.FirstName ?? ''} ${owner.LastName ?? ''}`.trim() || owner.Login || 'LoopU Member',
+            });
           });
 
           found_events.forEach((event) => {
             const key = Number(event.EventOwnerId);
             if (!Number.isNaN(key) && ownerMap.has(key)) {
-              event.OwnerProfileImageUrl = ownerMap.get(key);
-            } else if (event.OwnerProfileImageUrl === undefined) {
-              event.OwnerProfileImageUrl = null;
+              const ownerInfo = ownerMap.get(key);
+              event.OwnerProfileImageUrl = ownerInfo.profileImageUrl;
+              if (!event.OwnerName) {
+                event.OwnerName = ownerInfo.ownerName;
+              }
+            } else {
+              if (event.OwnerProfileImageUrl === undefined) {
+                event.OwnerProfileImageUrl = null;
+              }
+              if (!event.OwnerName) {
+                event.OwnerName = 'LoopU Member';
+              }
             }
           });
         } else {
           found_events.forEach((event) => {
             if (event.OwnerProfileImageUrl === undefined) {
               event.OwnerProfileImageUrl = null;
+            }
+            if (!event.OwnerName) {
+              event.OwnerName = 'LoopU Member';
             }
           });
         }

@@ -18,6 +18,7 @@ exports.setApp = function (app, client, api_path) {
       const db = client.db("COP4331Cards");
       const events = db.collection('Events');
       const users = db.collection('Users');
+      const users = db.collection('Users');
 
       const lastEvent = await events.find().sort({ EventId: -1 }).limit(1).toArray();
       const nextId = lastEvent.length > 0 ? lastEvent[0].EventId + 1 : 1;
@@ -30,6 +31,9 @@ exports.setApp = function (app, client, api_path) {
 
       const ownerDoc = await users.findOne({ UserId: userId });
       const ownerImageUrl = ownerDoc?.ProfileImageUrl || null;
+      const ownerName = ownerDoc
+        ? `${ownerDoc.FirstName ?? ''} ${ownerDoc.LastName ?? ''}`.trim() || ownerDoc.Login || 'LoopU Member'
+        : 'LoopU Member';
 
       const newEvent = {
         EventId: nextId,
@@ -40,7 +44,8 @@ exports.setApp = function (app, client, api_path) {
         EventDuration: eventDuration,
         EventLocation: eventLocation,
         EventImageUrl: eventImageUrl || null,
-        OwnerProfileImageUrl: ownerImageUrl
+        OwnerProfileImageUrl: ownerImageUrl,
+        OwnerName: ownerName
       };
 
       await events.insertOne(newEvent);

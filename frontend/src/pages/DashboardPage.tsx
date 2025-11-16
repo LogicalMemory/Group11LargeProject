@@ -26,6 +26,7 @@ type EventRecord = {
   Comments?: CommentRecord[];
   EventImageUrl?: string | null;
   OwnerProfileImageUrl?: string | null;
+  OwnerName?: string | null;
 };
 
 type DecodedToken = {
@@ -762,7 +763,7 @@ export default function DashboardPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
+                            <div className="min-w-0 space-y-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <h3 className="truncate text-base font-semibold text-slate-900">
                                   {eventRecord.EventTitle || 'Untitled Event'}
@@ -770,9 +771,21 @@ export default function DashboardPage() {
                                 <span className="text-xs font-semibold text-slate-400">#{eventRecord.EventId}</span>
                               </div>
                               <p className="text-xs text-slate-500">
-                                {formatDateTime(eventRecord.EventTime)}
-                                {eventRecord.EventLocation ? ` • ${eventRecord.EventLocation}` : null}
+                                Hosted by{' '}
+                                <span className="font-semibold text-slate-700">
+                                  {eventRecord.OwnerName || 'LoopU Member'}
+                                </span>
                               </p>
+                              <div className="text-xs text-slate-500">
+                                <p className="font-semibold text-slate-700">Event time</p>
+                                <p className="text-sm text-slate-900">{formatDateTime(eventRecord.EventTime)}</p>
+                              </div>
+                              {eventRecord.EventLocation ? (
+                                <div className="text-xs text-slate-500">
+                                  <p className="font-semibold text-slate-700">Location</p>
+                                  <p className="text-sm text-slate-900">{eventRecord.EventLocation}</p>
+                                </div>
+                              ) : null}
                             </div>
                             {isOwner ? (
                               <div className="flex items-center gap-2">
