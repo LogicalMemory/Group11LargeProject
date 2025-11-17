@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://localhost:5000';
+  static const String baseUrl = 'https://nicholasfoutch.xyz';
   final TokenStorage _tokenStorage = TokenStorage();
 
   Future<Map<String, dynamic>> login(String email, String password) async {

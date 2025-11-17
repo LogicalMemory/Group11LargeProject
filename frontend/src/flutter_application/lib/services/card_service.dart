@@ -6,7 +6,7 @@ import 'token_storage.dart';
 
 class CardService {
   // Reworked service to call the backend event API endpoints used by the web frontend.
-  static const String baseUrl = 'http://localhost:5000';
+  static const String baseUrl = 'https://nicholasfoutch.xyz';
   final TokenStorage _tokenStorage = TokenStorage();
 
   Future<String?> _getToken() async {

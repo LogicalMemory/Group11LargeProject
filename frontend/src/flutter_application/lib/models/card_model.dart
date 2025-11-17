@@ -139,7 +139,7 @@ class CardModel {
             .map((c) => CommentModel.fromJson(c as Map<String, dynamic>))
             .toList();
       }
-      
+
       location = json['location'];
       eventDuration = json['eventDuration']?.toString() ?? json['EventDuration']?.toString();
       likedBy = json['likedBy'] as List<dynamic>? ?? json['LikedBy'] as List<dynamic>?;

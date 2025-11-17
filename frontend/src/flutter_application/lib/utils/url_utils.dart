@@ -5,6 +5,6 @@ class UrlUtils {
       return path;
     }
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return 'http://localhost:5000/$cleanPath';
+    return 'https://nicholasfoutch.xyz/$cleanPath';
   }
 }

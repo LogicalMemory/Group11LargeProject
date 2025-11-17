@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://localhost:5000';
+  static const String baseUrl = 'https://nicholasfoutch.xyz';
   static const String searchEvents = '/api/CRUD/searchEvents';
   static const String createEvent = '/api/CRUD/createEvent';
   static const String updateEvent = '/api/CRUD/updateEvent';
