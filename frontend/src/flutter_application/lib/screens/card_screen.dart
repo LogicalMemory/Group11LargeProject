@@ -16,8 +16,6 @@ import '../dialogs/add_card_dialog.dart';
 import '../dialogs/edit_card_dialog.dart';
 import '../utils/calendar_helper.dart';
 import '../utils/snackbar_helper.dart';
-import 'login_screen.dart';
-
 
 class CardScreen extends StatefulWidget {
   const CardScreen({super.key});
@@ -26,14 +24,13 @@ class CardScreen extends StatefulWidget {
   State<CardScreen> createState() => _CardScreenState();
 }
 
-
 class _CardScreenState extends State<CardScreen> {
   // Services
   final CardService _cardService = CardService();
   final AuthService _authService = AuthService();
   final CardActions _cardActions = CardActions();
   final ImageService _imageService = ImageService();
-  final NotificationService _notificationService = NotificationService();  // NEW
+  final NotificationService _notificationService = NotificationService();
 
   // States
   final List<CardModel> _cards = [];
@@ -43,12 +40,11 @@ class _CardScreenState extends State<CardScreen> {
   String _searchMessage = '';
   String _viewFilter = 'mine';
   final Map<String, TextEditingController> _commentControllers = {};
-  final Map<String, bool> _reminderLoading = {};  // NEW
-  final Map<String, String> _reminderMessages = {};  // NEW
+  final Map<String, bool> _reminderLoading = {};
+  final Map<String, String> _reminderMessages = {};
   String? _currentUserId;
   String? _currentUserName;
   String? _userProfileImageUrl;
-
 
   @override
   void initState() {
@@ -67,19 +63,20 @@ class _CardScreenState extends State<CardScreen> {
     super.dispose();
   }
 
-
   // LOAD USER INFORMATION
   Future<void> _loadUserInfo() async {
     final userInfo = await _authService.getCurrentUser();
+    print('[Flutter] _loadUserInfo: userInfo = '
+        '${userInfo != null ? userInfo.toString() : 'null'}');
     setState(() {
       _currentUserId = userInfo?['userId']?.toString();
       _currentUserName =
           '${userInfo?['firstName'] ?? ''} ${userInfo?['lastName'] ?? ''}'
               .trim();
       _userProfileImageUrl = userInfo?['profileImageUrl'];
+      print('[Flutter] _userProfileImageUrl = $_userProfileImageUrl');
     });
   }
-
 
   // FILTER CARDS
   void _filterCards() {
@@ -120,7 +117,6 @@ class _CardScreenState extends State<CardScreen> {
     });
   }
 
-
   // LOAD EVENT CARDS
   Future<void> _loadCards() async {
     if (!mounted) return;
@@ -149,7 +145,6 @@ class _CardScreenState extends State<CardScreen> {
     }
   }
 
-
   // SEARCH FOR EVENTS
   Future<void> _searchCards() async {
     if (_searchController.text.isEmpty) {
@@ -159,7 +154,6 @@ class _CardScreenState extends State<CardScreen> {
     _filterCards();
     setState(() => _searchMessage = 'Card(s) have been retrieved');
   }
-
 
   // UPLOAD PFP
   Future<void> _uploadProfilePhoto() async {
@@ -177,7 +171,6 @@ class _CardScreenState extends State<CardScreen> {
       );
     }
   }
-
 
   // ADD NEW CARD
   Future<void> _addNewCard() async {
@@ -200,7 +193,6 @@ class _CardScreenState extends State<CardScreen> {
       );
     }
   }
-
 
   // EDIT CARD
   Future<void> _editCard(CardModel card) async {
@@ -239,25 +231,74 @@ class _CardScreenState extends State<CardScreen> {
     }
   }
 
-
   // DELETE CARD
   Future<void> _deleteCard(CardModel card) async {
-    final isOwner = card.ownerId?.toString() == _currentUserId || card.userId == _currentUserId;
+    final isOwner =
+        card.ownerId?.toString() == _currentUserId ||
+        card.userId == _currentUserId;
 
     if (!isOwner) {
-      ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('You can only delete events you created')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You can only delete events you created')),
+      );
       return;
     }
 
-    await _cardActions.deleteCard( context: context, card: card, onSuccess: _loadCards );
-  }
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Event'),
+        content: Text('Delete "${card.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
 
+    if (confirmed != true) return;
+
+    try {
+      // Delete the card
+      await _cardService.deleteCard(card.id);
+
+      // Immediately reload - ignore any errors since deletion worked
+      await _loadCards();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Event deleted')));
+    } catch (e) {
+      // Even if there's an error, try reloading anyway
+      await _loadCards();
+
+      if (!mounted) return;
+      // Only show error if it's NOT the "not found" message (since that means it worked)
+      if (!e.toString().contains('not found')) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
+    }
+  }
 
   // TOGGLE LIKE
   Future<void> _toggleLike(CardModel card) async {
-    await _cardActions.toggleLike( context: context, cardId: card.id, onSuccess: _loadCards );
+    await _cardActions.toggleLike(
+      context: context,
+      cardId: card.id,
+      onSuccess: _loadCards,
+    );
   }
-
 
   // ADD COMMENT
   Future<void> _addComment(CardModel card) async {
@@ -265,18 +306,22 @@ class _CardScreenState extends State<CardScreen> {
     if (controller == null) return;
 
     await _cardActions.addComment(
-      context: context, cardId: card.id, comment: controller.text,
-      onSuccess: () { controller.clear(); _loadCards(); },
+      context: context,
+      cardId: card.id,
+      comment: controller.text,
+      onSuccess: () {
+        controller.clear();
+        _loadCards();
+      },
     );
   }
-
 
   // ADD TO CALENDAR - NEW
   Future<void> _addToCalendar(CardModel card) async {
     try {
       final success = await CalendarHelper.addToCalendar(card);
       if (!mounted) return;
-      
+
       if (success) {
         SnackbarHelper.showSuccess(context, 'Opening calendar...');
       } else {
@@ -287,7 +332,6 @@ class _CardScreenState extends State<CardScreen> {
       SnackbarHelper.showError(context, 'Error opening calendar');
     }
   }
-
 
   // EMAIL REMINDER - NEW
   Future<void> _sendEmailReminder(CardModel card) async {
@@ -308,7 +352,7 @@ class _CardScreenState extends State<CardScreen> {
       );
 
       if (!mounted) return;
-      
+
       setState(() {
         _reminderMessages[card.id] = result['message'] as String;
       });
@@ -316,12 +360,12 @@ class _CardScreenState extends State<CardScreen> {
       SnackbarHelper.showSuccess(context, 'Reminder sent! Check your email.');
     } catch (e) {
       if (!mounted) return;
-      
+
       final message = e.toString().replaceAll('Exception: ', '');
       setState(() {
         _reminderMessages[card.id] = message;
       });
-      
+
       SnackbarHelper.showError(context, message);
     } finally {
       if (mounted) {
@@ -331,16 +375,6 @@ class _CardScreenState extends State<CardScreen> {
       }
     }
   }
-
-
-  // LOGOUT
-  Future<void> _logout() async {
-    await _authService.logout();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-  }
-
-
 
   // BUILDING THE SITE
   // =====================================================================================================================
@@ -385,14 +419,12 @@ class _CardScreenState extends State<CardScreen> {
         foregroundColor: Colors.black,
         actions: [
           AddEventSection(onAddEvent: _addNewCard),
-          SizedBox(width: 25),
+          SizedBox(width: 15),
           ProfileSection(
             profileImageUrl: _userProfileImageUrl,
             userName: _currentUserName ?? 'User',
             onUpload: _uploadProfilePhoto,
           ),
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
-          SizedBox(width: 20),
         ],
       ),
 
@@ -402,7 +434,6 @@ class _CardScreenState extends State<CardScreen> {
             ? const Center(child: CircularProgressIndicator())
             : CustomScrollView(
                 slivers: [
-
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                   SliverToBoxAdapter(
@@ -463,10 +494,11 @@ class _CardScreenState extends State<CardScreen> {
                               onToggleLike: () => _toggleLike(card),
                               commentController: _commentControllers[card.id]!,
                               onAddComment: () => _addComment(card),
-                              onAddToCalendar: () => _addToCalendar(card),  // NEW
-                              onEmailReminder: () => _sendEmailReminder(card),  // NEW
-                              isLoadingReminder: _reminderLoading[card.id] ?? false,  // NEW
-                              reminderMessage: _reminderMessages[card.id],  // NEW
+                              onAddToCalendar: () => _addToCalendar(card),
+                              onEmailReminder: () => _sendEmailReminder(card),
+                              isLoadingReminder:
+                                  _reminderLoading[card.id] ?? false,
+                              reminderMessage: _reminderMessages[card.id],
                             ),
                           );
                         }, childCount: _filteredCards.length),

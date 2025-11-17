@@ -54,12 +54,20 @@ class CardItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CardHeader(
-            title: card.title,
-            description: card.description,
-            isOwner: isOwner,
-            onEdit: onEdit,
-            onDelete: onDelete,
+          // Header with Edit/Delete buttons
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CardHeader(
+                  title: card.title,
+                  description: card.description,
+                  isOwner: isOwner,
+                  onEdit: onEdit,
+                  onDelete: onDelete,
+                ),
+              ),
+            ],
           ),
 
           CardImage(imageUrl: card.eventImageUrl),
@@ -74,7 +82,10 @@ class CardItem extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          Row(
+          // Engagement and Actions Row
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               CardEngagement(
                 likes: card.likes ?? 0,
@@ -83,10 +94,7 @@ class CardItem extends StatelessWidget {
                 onToggleLike: onToggleLike,
               ),
 
-              const SizedBox(width: 16),
-
-              if (onAddToCalendar != null || onEmailReminder != null) ...[
-                const SizedBox(height: 12),
+              if (onAddToCalendar != null || onEmailReminder != null)
                 EventActions(
                   card: card,
                   onAddToCalendar: onAddToCalendar ?? () {},
@@ -94,11 +102,10 @@ class CardItem extends StatelessWidget {
                   isLoadingReminder: isLoadingReminder,
                   reminderMessage: reminderMessage,
                 ),
-              ],
-
             ],
           ),
 
+          const SizedBox(height: 12),
 
           CommentList(comments: card.comments ?? []),
 

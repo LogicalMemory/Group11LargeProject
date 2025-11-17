@@ -54,22 +54,6 @@ class HomeScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: isSmall ? 48 : 96, horizontal: 24),
 
-                    // trying to match the gradient lol
-                    // decoration: BoxDecoration(
-                    //   color: Colors.white,
-                    //   gradient: RadialGradient(
-                    //     center: const Alignment(1, -1),
-                    //     radius: 1,
-                    //     colors: [
-                          // const Color(0xFFFF2D55).withOpacity(0.60),
-                          // const Color(0xFFFF7A18).withOpacity(0.40),
-                          // const Color(0xFF7B2FFF).withOpacity(0.03),
-                          // Colors.white.withOpacity(0.0),
-                    //     ],
-                    //     stops: const [0.0, 0.40, 0.50, 1.0],
-                    //   ),
-                    // ),
-
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1100),
@@ -98,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'LoopU lets you discover events, RSVP instantly, and never miss a night worth remembering. Follow the orgs you love and stay in sync with your campus.',
+                              'LoopU lets students share and discover campus events in one place, from hangouts to big nights out. Add events to your calendar, get email reminders, and stay in the loop with what your friends are doing',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: isSmall ? 16 : 20,

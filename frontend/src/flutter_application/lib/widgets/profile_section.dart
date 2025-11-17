@@ -14,31 +14,33 @@ class ProfileSection extends StatelessWidget {
     required this.onUpload,
   });
 
+
+
   @override
   Widget build(BuildContext context) {
+    print('[Flutter] ProfileSection: profileImageUrl = $profileImageUrl');
     return Row(
       children: [
         GestureDetector(
           onTap: onUpload,
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey[300],
-            backgroundImage: profileImageUrl != null
-                ? CachedNetworkImageProvider(
+          child: profileImageUrl != null
+              ? CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: CachedNetworkImageProvider(
                     UrlUtils.buildAbsoluteUrl(profileImageUrl!)!,
-                  )
-                : null,
-            child:
-                profileImageUrl == null ? const Icon(Icons.person) : null,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          userName,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+                  ),
+                  onBackgroundImageError: (_, __) {
+                    print('[Flutter] ProfileSection: Failed to load image: $profileImageUrl');
+                    // fallback to icon if image fails
+                  },
+                  child: null,
+                )
+              : const CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person),
+                ),
         ),
         const SizedBox(width: 12),
       ],

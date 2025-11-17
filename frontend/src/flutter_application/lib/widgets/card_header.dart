@@ -38,24 +38,65 @@ class CardHeader extends StatelessWidget {
         ),
         if (isOwner) ...[
           const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: onEdit,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              minimumSize: const Size(0, 32),
-            ),
-            child: const Text('Edit', style: TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: onDelete,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              minimumSize: const Size(0, 32),
-            ),
-            child: const Text('Delete', style: TextStyle(fontSize: 12)),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Edit Button
+              InkWell(
+                onTap: onEdit,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit, size: 14, color: Colors.grey[700]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Edit',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Delete Button
+              InkWell(
+                onTap: onDelete,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red[200]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.delete, size: 14, color: Colors.red[600]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Delete',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ],

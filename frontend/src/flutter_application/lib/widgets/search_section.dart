@@ -49,20 +49,13 @@ class SearchSection extends StatelessWidget {
                   ),
                 ),
               ),
+            ],
+          ),
 
-              const SizedBox(width: 20),
+          const SizedBox(height: 10),
 
-              SizedBox(
-                height: 48,
-                child: GradientButton(
-                  onPressed: onSearch,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  child: const Text('Search', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-              ),
-
-              const SizedBox(width: 20),
-
+          Row (
+            children: [
               Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
@@ -87,6 +80,17 @@ class SearchSection extends StatelessWidget {
                   ],
                 ),
               ),
+
+              Spacer(),
+              SizedBox(
+                height: 48, width: 100,
+                child: GradientButton(
+                  onPressed: onSearch,
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  child: const Text('Search', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+              ),
+
             ],
           ),
 

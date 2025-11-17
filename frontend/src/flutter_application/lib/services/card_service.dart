@@ -32,8 +32,10 @@ class CardService {
         await http.MultipartFile.fromPath('image', imageFile.path),
       );
 
+      print('[DEBUG] Uploading event image: ${imageFile.path}');
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
+      print('[DEBUG] Upload response: ${response.statusCode} $responseBody');
 
       if (response.statusCode == 200) {
         final data = json.decode(responseBody);
@@ -46,6 +48,7 @@ class CardService {
         throw Exception('Failed to upload image: $responseBody');
       }
     } catch (e) {
+      print('[ERROR] Failed to upload event image: $e');
       throw Exception('Failed to upload image: $e');
     }
   }

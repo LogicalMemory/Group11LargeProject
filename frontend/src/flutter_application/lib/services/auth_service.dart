@@ -9,6 +9,35 @@ class AuthService {
   static const String baseUrl = 'https://nicholasfoutch.xyz';
   final TokenStorage _tokenStorage = TokenStorage();
 
+  //Fetch user profile from backend (same behavior as website)
+  Future<Map<String, dynamic>?> fetchUserProfile() async {
+    try {
+      final token = await _tokenStorage.getToken();
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/auth/getCurrentUser'),
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) return null;
+
+      final data = jsonDecode(response.body);
+
+      // Save updated profile image URL
+      if (data['profileImageUrl'] != null) {
+        await _tokenStorage.saveProfileImageUrl(data['profileImageUrl']);
+      }
+
+      return data;
+    } catch (e) {
+      print("Error fetching profile: $e");
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -20,8 +49,11 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Backend may return token as an object { accessToken: '...' } or directly
-        dynamic tokenField = data['token'] ?? data['token'] ?? data['accessToken'] ?? data['accessToken'];
+        dynamic tokenField =
+            data['token'] ??
+            data['token'] ??
+            data['accessToken'] ??
+            data['accessToken'];
         String? token;
         if (tokenField is Map && tokenField['accessToken'] is String) {
           token = tokenField['accessToken'];
@@ -33,6 +65,9 @@ class AuthService {
 
         if (token != null) {
           await _tokenStorage.saveToken(token);
+
+          //after login, fetch real user profile (fixes null profile images)
+          await fetchUserProfile();
         }
 
         return {
@@ -86,6 +121,9 @@ class AuthService {
 
         if (token != null) {
           await _tokenStorage.saveToken(token);
+
+          //fetch profile after register
+          await fetchUserProfile();
         }
 
         return {
@@ -125,21 +163,28 @@ class AuthService {
       request.files.add(
         await http.MultipartFile.fromPath('image', imageFile.path),
       );
-      
+
       request.fields['token'] = token;
 
+      print('[DEBUG] Uploading profile photo: ${imageFile.path}');
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
+      print('[DEBUG] Upload response: ${response.statusCode} $responseBody');
 
       if (response.statusCode == 200) {
         final data = json.decode(responseBody);
-        
-        // Update token if provided
+
         if (data['token'] != null) {
           await _tokenStorage.saveToken(data['token']);
         }
-        
+
         if (data['profileImageUrl'] != null) {
+          // Save immediately
+          await _tokenStorage.saveProfileImageUrl(data['profileImageUrl']);
+
+          //refresh entire profile
+          await fetchUserProfile();
+
           return data['profileImageUrl'] as String;
         } else {
           throw Exception('No profile image URL in response');
@@ -148,6 +193,7 @@ class AuthService {
         throw Exception('Failed to upload profile photo: $responseBody');
       }
     } catch (e) {
+      print('[ERROR] Failed to upload profile photo: $e');
       throw Exception('Failed to upload profile photo: $e');
     }
   }
@@ -171,22 +217,30 @@ class AuthService {
       final token = await storage.read(key: 'auth_token');
 
       if (token == null || token.isEmpty) {
+        print('No token found');
         return null;
       }
 
-      // Check if token is expired
       if (JwtDecoder.isExpired(token)) {
+        print('Token is expired');
         return null;
       }
 
-      // Decode the token to get user information
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
 
+      final userId =
+          decodedToken['userId'] ??
+          decodedToken['id'] ??
+          decodedToken['user_id'] ??
+          decodedToken['sub'];
+
       return {
-        'userId': decodedToken['userId'],
-        'firstName': decodedToken['firstName'],
-        'lastName': decodedToken['lastName'],
-        'profileImageUrl': decodedToken['profileImageUrl'],
+        'userId': userId,
+        'firstName': decodedToken['firstName'] ?? decodedToken['first_name'],
+        'lastName': decodedToken['lastName'] ?? decodedToken['last_name'],
+        'profileImageUrl':
+            decodedToken['profileImageUrl'] ??
+            decodedToken['profile_image_url'],
       };
     } catch (e) {
       print('Error getting current user: $e');
