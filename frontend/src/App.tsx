@@ -5,6 +5,8 @@ import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 import AuthSuccessPage from './pages/AuthSuccessPage';
 import DashboardPage from './pages/DashboardPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 export default function App() {
   return (
@@ -14,6 +16,8 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/success" element={<AuthSuccessPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/cards" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
