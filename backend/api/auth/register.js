@@ -82,8 +82,7 @@ exports.setApp = function (app, client, api_path) {
 
         }
       )
-    }
-  );
-
-  followupVerification(login, IsVerified)
+      res.status(500).json({ message: 'updated verification' });
+      followupVerification(user.Login, user.IsVerified);
+    });
 };
