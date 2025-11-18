@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto'); // For generating verification token
 const jwtHelper = require('../../createJWT.js');
-const { sendVerificationEmail, followupVerification } = require("./emailverification"); 
+const { sendVerificationEmail } = require("./emailverification"); 
 
 exports.setApp = function (app, client, api_path) {
   
