@@ -2,7 +2,7 @@
 // using Twilio SendGrid's v3 Node.js Library
 // https://github.com/sendgrid/sendgrid-nodejs
 
-function sendVerificationEmail(name, email, verificationToken) {
+function sendVerificationEmail(name, email, verificationToken, IsVerified) {
     const sgMail = require('@sendgrid/mail')
     sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
@@ -11,7 +11,7 @@ function sendVerificationEmail(name, email, verificationToken) {
         from: 'loopu2025@gmail.com', // Change to your verified sender
         subject: 'LoopU: Verify Your Email',
         text: 'and easy to do anywhere, even with Node.js. ',
-        html: `<b>Current verification status: false</b><br><br>. Hi ${name}!<br><br>Thanks for making a LoopU account!<br><br>Click <a href="https://nicholasfoutch.xyz/api/verify-email/${verificationToken}">here</a> to verify your email and get started with keeping connected with your campus.`,
+        html: `<b>Current verification status: ${IsVerified}</b><br><br>. Hi ${name}!<br><br>Thanks for making a LoopU account!<br><br>Click <a href="https://nicholasfoutch.xyz/api/verify-email/${verificationToken}">here</a> to verify your email and get started with keeping connected with your campus.`,
     }
     sgMail
     .send(msg)
@@ -23,8 +23,8 @@ function sendVerificationEmail(name, email, verificationToken) {
     })
 }
 
-/*
-function followupVerification(email, IsVerified) {
+
+/*function followupVerification(email, IsVerified) {
     const msg = {
             to: email, // Change to your recipient
             from: 'loopu2025@gmail.com', // Change to your verified sender
