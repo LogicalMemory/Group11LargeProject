@@ -7,10 +7,7 @@ import '../utils/date_utils.dart' as date_utils;
 class CommentItem extends StatelessWidget {
   final CommentModel comment;
 
-  const CommentItem({
-    super.key,
-    required this.comment,
-  });
+  const CommentItem({super.key, required this.comment});
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +29,19 @@ class CommentItem extends StatelessWidget {
               children: [
                 Text(
                   comment.authorName ?? 'Anonymous',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(comment.text ?? '', style: const TextStyle(fontSize: 12)),
                 if (comment.createdAt != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    date_utils.DateUtils.formatDateTime(DateTime.tryParse(comment.createdAt!)),
+                    date_utils.DateUtils.formatDateTime(
+                      DateTime.tryParse(comment.createdAt!),
+                    ),
                     style: TextStyle(fontSize: 10, color: Colors.grey[400]),
                   ),
                 ],
@@ -56,15 +58,12 @@ class CommentItem extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: CachedNetworkImage(
-          imageUrl: UrlUtils.buildAbsoluteUrl(comment.authorImageUrl)!,
+          imageUrl: UrlUtils.toAbsoluteUrl(comment.authorImageUrl),
           width: 32,
           height: 32,
           fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            width: 32,
-            height: 32,
-            color: Colors.grey[300],
-          ),
+          placeholder: (context, url) =>
+              Container(width: 32, height: 32, color: Colors.grey[300]),
           errorWidget: (context, url, error) => Container(
             width: 32,
             height: 32,

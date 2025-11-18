@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/gradient_text.dart';
-import '../widgets/profile_section.dart';
 import '../widgets/add_event_section.dart';
 import '../widgets/stats_section.dart';
 import '../widgets/search_section.dart';
@@ -10,12 +9,12 @@ import '../models/card_model.dart';
 import '../services/card_service.dart';
 import '../services/auth_service.dart';
 import '../services/card_actions.dart';
-import '../services/image_service.dart';
 import '../services/notification_service.dart';
 import '../dialogs/add_card_dialog.dart';
 import '../dialogs/edit_card_dialog.dart';
 import '../utils/calendar_helper.dart';
 import '../utils/snackbar_helper.dart';
+import '../widgets/profile_image_section.dart';
 
 class CardScreen extends StatefulWidget {
   const CardScreen({super.key});
@@ -29,7 +28,6 @@ class _CardScreenState extends State<CardScreen> {
   final CardService _cardService = CardService();
   final AuthService _authService = AuthService();
   final CardActions _cardActions = CardActions();
-  final ImageService _imageService = ImageService();
   final NotificationService _notificationService = NotificationService();
 
   // States
@@ -40,11 +38,11 @@ class _CardScreenState extends State<CardScreen> {
   String _searchMessage = '';
   String _viewFilter = 'mine';
   final Map<String, TextEditingController> _commentControllers = {};
-  final Map<String, bool> _reminderLoading = {};
+  Map<String, bool> _reminderLoading = {};
   final Map<String, String> _reminderMessages = {};
   String? _currentUserId;
-  String? _currentUserName;
   String? _userProfileImageUrl;
+  String? _userToken;
 
   @override
   void initState() {
@@ -52,6 +50,14 @@ class _CardScreenState extends State<CardScreen> {
     _loadUserInfo();
     _loadCards();
     _searchController.addListener(_filterCards);
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final token = await _authService.getToken();
+    setState(() {
+      _userToken = token;
+    });
   }
 
   @override
@@ -63,18 +69,11 @@ class _CardScreenState extends State<CardScreen> {
     super.dispose();
   }
 
-  // LOAD USER INFORMATION
   Future<void> _loadUserInfo() async {
     final userInfo = await _authService.getCurrentUser();
-    print('[Flutter] _loadUserInfo: userInfo = '
-        '${userInfo != null ? userInfo.toString() : 'null'}');
     setState(() {
       _currentUserId = userInfo?['userId']?.toString();
-      _currentUserName =
-          '${userInfo?['firstName'] ?? ''} ${userInfo?['lastName'] ?? ''}'
-              .trim();
       _userProfileImageUrl = userInfo?['profileImageUrl'];
-      print('[Flutter] _userProfileImageUrl = $_userProfileImageUrl');
     });
   }
 
@@ -155,29 +154,11 @@ class _CardScreenState extends State<CardScreen> {
     setState(() => _searchMessage = 'Card(s) have been retrieved');
   }
 
-  // UPLOAD PFP
-  Future<void> _uploadProfilePhoto() async {
-    try {
-      final imageUrl = await _imageService.uploadProfilePhoto();
-      setState(() => _userProfileImageUrl = imageUrl);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Profile photo updated!')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading photo: ${e.toString()}')),
-      );
-    }
-  }
-
   // ADD NEW CARD
   Future<void> _addNewCard() async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) =>
-          AddCardDialog(onPickImage: () => _imageService.pickEventImage()),
+      builder: (context) => AddCardDialog(userToken: _userToken),
     );
 
     if (result != null && result['title']!.isNotEmpty) {
@@ -208,10 +189,7 @@ class _CardScreenState extends State<CardScreen> {
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => EditCardDialog(
-        card: card,
-        onPickImage: () => _imageService.pickEventImage(),
-      ),
+      builder: (context) => EditCardDialog(card: card, userToken: _userToken),
     );
 
     if (result != null && result['title']!.isNotEmpty) {
@@ -420,11 +398,6 @@ class _CardScreenState extends State<CardScreen> {
         actions: [
           AddEventSection(onAddEvent: _addNewCard),
           SizedBox(width: 15),
-          ProfileSection(
-            profileImageUrl: _userProfileImageUrl,
-            userName: _currentUserName ?? 'User',
-            onUpload: _uploadProfilePhoto,
-          ),
         ],
       ),
 

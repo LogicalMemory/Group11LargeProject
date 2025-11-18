@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/dialog_form_field.dart';
-import '../widgets/image_picker_button.dart';
+import '../widgets/event_image_dialog_section.dart';
 
 class AddCardDialog extends StatefulWidget {
-  final Future<String?> Function() onPickImage;
+  final String? userToken;
   final String? selectedImageUrl;
 
   const AddCardDialog({
     super.key,
-    required this.onPickImage,
+    this.userToken,
     this.selectedImageUrl,
   });
 
@@ -24,7 +24,6 @@ class _AddCardDialogState extends State<AddCardDialog> {
   final TextEditingController _durationController = TextEditingController(text: '60');
   final TextEditingController _locationController = TextEditingController();
   String? _selectedEventImageUrl;
-  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -42,18 +41,6 @@ class _AddCardDialogState extends State<AddCardDialog> {
     super.dispose();
   }
 
-  Future<void> _handlePickImage() async {
-    setState(() => _isUploadingImage = true);
-    try {
-      final imageUrl = await widget.onPickImage();
-      setState(() {
-        _selectedEventImageUrl = imageUrl;
-        _isUploadingImage = false;
-      });
-    } catch (e) {
-      setState(() => _isUploadingImage = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +78,10 @@ class _AddCardDialogState extends State<AddCardDialog> {
               label: 'Location',
             ),
             const SizedBox(height: 16),
-            ImagePickerButton(
-              imageUrl: _selectedEventImageUrl,
-              isUploading: _isUploadingImage,
-              onPick: _handlePickImage,
-              onRemove: () => setState(() => _selectedEventImageUrl = null),
+            EventImageDialogSection(
+              initialImageUrl: _selectedEventImageUrl,
+              token: widget.userToken,
+              onImageUploaded: (url) => setState(() => _selectedEventImageUrl = url),
             ),
           ],
         ),
@@ -110,14 +96,16 @@ class _AddCardDialogState extends State<AddCardDialog> {
             ),
             const SizedBox(width: 12),
             GradientButton(
-              onPressed: () => Navigator.pop(context, {
+              onPressed: () {
+                Navigator.pop(context, {
                 'title': _titleController.text,
                 'description': _descriptionController.text,
                 'time': _timeController.text,
                 'duration': _durationController.text,
                 'location': _locationController.text,
                 'imageUrl': _selectedEventImageUrl,
-              }),
+                });
+              },
               child: const Text('Add'),
             ),
           ],

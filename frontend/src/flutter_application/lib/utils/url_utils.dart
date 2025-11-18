@@ -1,10 +1,8 @@
 class UrlUtils {
-  static String? buildAbsoluteUrl(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return path;
-    }
-    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return 'https://nicholasfoutch.xyz/$cleanPath';
+  static String toAbsoluteUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads/')) return 'https://nicholasfoutch.xyz$url';
+    return url;
   }
 }

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/card_model.dart';
 import '../widgets/dialog_form_field.dart';
-import '../widgets/image_picker_button.dart';
+import '../widgets/event_image_dialog_section.dart';
 
 class EditCardDialog extends StatefulWidget {
   final CardModel card;
-  final Future<String?> Function() onPickImage;
+  final String? userToken;
 
   const EditCardDialog({
     super.key,
     required this.card,
-    required this.onPickImage,
+    this.userToken,
   });
 
   @override
@@ -24,7 +24,7 @@ class _EditCardDialogState extends State<EditCardDialog> {
   late TextEditingController _durationController;
   late TextEditingController _locationController;
   String? _selectedEventImageUrl;
-  bool _isUploadingImage = false;
+  String? userToken;
 
   @override
   void initState() {
@@ -47,18 +47,6 @@ class _EditCardDialogState extends State<EditCardDialog> {
     super.dispose();
   }
 
-  Future<void> _handlePickImage() async {
-    setState(() => _isUploadingImage = true);
-    try {
-      final imageUrl = await widget.onPickImage();
-      setState(() {
-        _selectedEventImageUrl = imageUrl;
-        _isUploadingImage = false;
-      });
-    } catch (e) {
-      setState(() => _isUploadingImage = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +83,10 @@ class _EditCardDialogState extends State<EditCardDialog> {
               label: 'Location',
             ),
             const SizedBox(height: 16),
-            ImagePickerButton(
-              imageUrl: _selectedEventImageUrl,
-              isUploading: _isUploadingImage,
-              onPick: _handlePickImage,
-              onRemove: () => setState(() => _selectedEventImageUrl = null),
+            EventImageDialogSection(
+              initialImageUrl: _selectedEventImageUrl,
+              token: widget.userToken,
+              onImageUploaded: (url) => setState(() => _selectedEventImageUrl = url),
             ),
           ],
         ),

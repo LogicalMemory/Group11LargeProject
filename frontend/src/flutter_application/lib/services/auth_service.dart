@@ -17,9 +17,7 @@ class AuthService {
 
       final response = await http.get(
         Uri.parse('$baseUrl/api/auth/getCurrentUser'),
-        headers: {
-          HttpHeaders.authorizationHeader: 'Bearer $token',
-        },
+        headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
       );
 
       if (response.statusCode != 200) return null;
@@ -33,7 +31,6 @@ class AuthService {
 
       return data;
     } catch (e) {
-      print("Error fetching profile: $e");
       return null;
     }
   }
@@ -166,10 +163,8 @@ class AuthService {
 
       request.fields['token'] = token;
 
-      print('[DEBUG] Uploading profile photo: ${imageFile.path}');
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      print('[DEBUG] Upload response: ${response.statusCode} $responseBody');
 
       if (response.statusCode == 200) {
         final data = json.decode(responseBody);
@@ -193,7 +188,6 @@ class AuthService {
         throw Exception('Failed to upload profile photo: $responseBody');
       }
     } catch (e) {
-      print('[ERROR] Failed to upload profile photo: $e');
       throw Exception('Failed to upload profile photo: $e');
     }
   }
@@ -212,17 +206,16 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>?> getCurrentUser() async {
+    const storage = FlutterSecureStorage();
+
     try {
-      const storage = FlutterSecureStorage();
       final token = await storage.read(key: 'auth_token');
 
       if (token == null || token.isEmpty) {
-        print('No token found');
         return null;
       }
 
       if (JwtDecoder.isExpired(token)) {
-        print('Token is expired');
         return null;
       }
 
@@ -234,16 +227,70 @@ class AuthService {
           decodedToken['user_id'] ??
           decodedToken['sub'];
 
+      // Fetch updated user profile by calling searchEvents
+      try {
+        final response = await http.post(
+          Uri.parse('https://nicholasfoutch.xyz/api/CRUD/searchEvents'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'token': token, 'ownerId': userId}),
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+
+          // The backend returns a refreshed token with updated user data
+          if (data['token'] != null) {
+            final newToken = data['token'].toString(); // Convert to string just in case
+
+            await storage.write(key: 'auth_token', value: newToken);
+
+            // Decode the new token to get profileImageUrl
+            Map<String, dynamic> newDecodedToken = JwtDecoder.decode(newToken);
+
+            // Safely extract profileImageUrl as String
+            dynamic profileUrlRaw =
+                newDecodedToken['profileImageUrl'] ??
+                newDecodedToken['profile_image_url'];
+            String? profileUrl;
+
+            if (profileUrlRaw is String) {
+              profileUrl = profileUrlRaw;
+            } else if (profileUrlRaw != null) {
+              profileUrl = profileUrlRaw.toString();
+            }
+
+            return {
+              'userId': userId,
+              'firstName':
+                  newDecodedToken['firstName'] ?? newDecodedToken['first_name'],
+              'lastName':
+                  newDecodedToken['lastName'] ?? newDecodedToken['last_name'],
+              'profileImageUrl': profileUrl,
+            };
+          }
+        }
+      } catch (e, stackTrace) {
+        print('Stack trace: $stackTrace');
+      }
+
+      // Fallback to just token data if API call fails
+      dynamic profileUrlRaw =
+          decodedToken['profileImageUrl'] ?? decodedToken['profile_image_url'];
+      String? profileUrl;
+
+      if (profileUrlRaw is String) {
+        profileUrl = profileUrlRaw;
+      } else if (profileUrlRaw != null) {
+        profileUrl = profileUrlRaw.toString();
+      }
+
       return {
         'userId': userId,
         'firstName': decodedToken['firstName'] ?? decodedToken['first_name'],
         'lastName': decodedToken['lastName'] ?? decodedToken['last_name'],
-        'profileImageUrl':
-            decodedToken['profileImageUrl'] ??
-            decodedToken['profile_image_url'],
+        'profileImageUrl': profileUrl,
       };
     } catch (e) {
-      print('Error getting current user: $e');
       return null;
     }
   }
