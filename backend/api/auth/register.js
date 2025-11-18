@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto'); // For generating verification token
 const jwtHelper = require('../../createJWT.js');
 const { sendVerificationEmail } = require("./emailverification"); 
 
@@ -35,10 +36,14 @@ exports.setApp = function (app, client, api_path) {
         LastName: lastName,
         Login: login,
         PasswordHash: passwordHash,
-        ProfileImageUrl: null
+        ProfileImageUrl: null,
+        IsVerified: false
       };
 
       await users.insertOne(newUser);
+
+      var verificationToken = crypto.randomBytes(16).toString('hex');
+
 
       // Generate JWT token
       const tokenPayload = jwtHelper.createToken(firstName, lastName, nextId);
@@ -53,7 +58,7 @@ exports.setApp = function (app, client, api_path) {
       });
 
       // Send email verification
-      sendVerificationEmail(login);
+      sendVerificationEmail(login, verificationToken);
     } catch (err) {
       console.error('Error in /api/register:', err);
       res.status(500).json({ error: 'Server error' });
