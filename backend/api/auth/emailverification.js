@@ -25,6 +25,9 @@ function sendVerificationEmail(name, email, verificationToken, IsVerified) {
 
 
 function followupVerification(email, IsVerified) {
+    const sgMail = require('@sendgrid/mail')
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    
     const msg = {
             to: email, // Change to your recipient
             from: 'loopu2025@gmail.com', // Change to your verified sender
