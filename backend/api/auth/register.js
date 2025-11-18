@@ -69,7 +69,7 @@ exports.setApp = function (app, client, api_path) {
     }
   });
 
-  app.get('/api/verify-email/:verificationToken', async (req, res) => {
+  /*app.get('/api/verify-email/:verificationToken', async (req, res) => {
     
     const token = req.params.verificationToken;
     const user = await users.findOne({ verificationToken: token });
@@ -84,5 +84,5 @@ exports.setApp = function (app, client, api_path) {
       )
       res.status(500).json({ message: 'updated verification' });
       followupVerification(user.Login, user.IsVerified);
-    });
+    });*/
 };
