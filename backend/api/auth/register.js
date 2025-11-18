@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto'); // For generating verification token
 const jwtHelper = require('../../createJWT.js');
-const { sendVerificationEmail } = require("./emailverification"); 
+const { sendVerificationEmail, followupVerification } = require("./emailverification"); 
 
 exports.setApp = function (app, client, api_path) {
   
@@ -67,22 +67,32 @@ exports.setApp = function (app, client, api_path) {
       console.error('Error in /api/register:', err);
       res.status(500).json({ error: 'Server error' });
     }
+
+    followupVerification(newUser.Login, newUser.IsVerified);
   });
 
-  /*app.get('/api/verify-email/:verificationToken', async (req, res) => {
-    
-    const token = req.params.verificationToken;
-    const user = await users.findOne({ verificationToken: token });
+  app.get('/api/verify-email/:verificationToken', async (req, res) => {
 
-    await users.updateOne(
+      const token = req.params.verificationToken;
+
+      const user = await users.findOne({ verificationToken: token });
+
+      await users.updateOne(
         { UserId: user.UserId },
-        {
-          $set: { IsVerified: true },
+        { $set: { IsVerified: true } }
+      );
 
+      const updatedUser = await users.findOne({ UserId: user.UserId });
 
-        }
-      )
-      res.status(500).json({ message: 'updated verification' });
-      followupVerification(user.Login, user.IsVerified);
-    });*/
+      followupVerification(
+        updatedUser.Login,
+        updatedUser.IsVerified
+      );
+
+    return res.send(`
+    <h1>Email verified </h1>
+    <p>Your LoopU account has been verified. You can now close this tab and log in.</p>`);
+
+  });
+
 };

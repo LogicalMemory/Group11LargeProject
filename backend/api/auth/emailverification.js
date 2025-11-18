@@ -24,13 +24,13 @@ function sendVerificationEmail(name, email, verificationToken, IsVerified) {
 }
 
 
-/*function followupVerification(email, IsVerified) {
+function followupVerification(email, IsVerified) {
     const msg = {
             to: email, // Change to your recipient
             from: 'loopu2025@gmail.com', // Change to your verified sender
             subject: 'LoopU: Follow Up Verification',
             text: 'Verification status: ${IsVerified}',
-            html: 'Verification status: ${IsVerified}'
+            html: `Verification status: ${IsVerified}`
         }
     sgMail
     .send(msg)
@@ -40,5 +40,5 @@ function sendVerificationEmail(name, email, verificationToken, IsVerified) {
     .catch((error) => {
         console.error(error)
     })
-}*/
-module.exports = { sendVerificationEmail };
+}
+module.exports = { sendVerificationEmail , followupVerification };
