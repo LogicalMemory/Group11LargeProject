@@ -62,7 +62,7 @@ exports.setApp = function (app, client, api_path) {
       });
 
       // Send email verification
-      sendVerificationEmail(firstName, login, verificationToken, IsVerified);
+      sendVerificationEmail(firstName, login, verificationToken);
     } catch (err) {
       console.error('Error in /api/register:', err);
       res.status(500).json({ error: 'Server error' });
