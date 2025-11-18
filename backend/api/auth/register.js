@@ -1,9 +1,13 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto'); // For generating verification token
 const jwtHelper = require('../../createJWT.js');
-const { sendVerificationEmail } = require("./emailverification"); 
+const { sendVerificationEmail, followupVerification } = require("./emailverification"); 
 
 exports.setApp = function (app, client, api_path) {
+  
+      const db = client.db('COP4331Cards');
+      const users = db.collection('Users');
+  
   app.post(api_path, async (req, res) => {
     try {
       // incoming: firstName, lastName, login, password
@@ -14,8 +18,8 @@ exports.setApp = function (app, client, api_path) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const db = client.db('COP4331Cards');
-      const users = db.collection('Users');
+      //const db = client.db('COP4331Cards');
+      //const users = db.collection('Users');
 
       // Check if login already exists
       const existing = await users.findOne({ Login: login });
@@ -30,6 +34,8 @@ exports.setApp = function (app, client, api_path) {
       const lastUser = await users.find().sort({ UserId: -1 }).limit(1).toArray();
       const nextId = lastUser.length > 0 ? lastUser[0].UserId + 1 : 1;
 
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+
       const newUser = {
         UserId: nextId,
         FirstName: firstName,
@@ -37,13 +43,11 @@ exports.setApp = function (app, client, api_path) {
         Login: login,
         PasswordHash: passwordHash,
         ProfileImageUrl: null,
-        IsVerified: false
+        IsVerified: false,
+        verificationToken: verificationToken
       };
 
       await users.insertOne(newUser);
-
-      var verificationToken = crypto.randomBytes(16).toString('hex');
-
 
       // Generate JWT token
       const tokenPayload = jwtHelper.createToken(firstName, lastName, nextId);
@@ -58,10 +62,28 @@ exports.setApp = function (app, client, api_path) {
       });
 
       // Send email verification
-      sendVerificationEmail(firstName, login, verificationToken);
+      sendVerificationEmail(firstName, login, verificationToken, IsVerified);
     } catch (err) {
       console.error('Error in /api/register:', err);
       res.status(500).json({ error: 'Server error' });
     }
   });
+
+  app.get('/api/verify-email/:verificationToken', async (req, res) => {
+    
+    const token = req.params.verificationToken;
+    const user = await users.findOne({ verificationToken: token });
+
+    await users.updateOne(
+        { UserId: user.UserId },
+        {
+          $set: { IsVerified: true },
+
+
+        }
+      )
+    }
+  );
+
+  followupVerification(login, IsVerified)
 };
