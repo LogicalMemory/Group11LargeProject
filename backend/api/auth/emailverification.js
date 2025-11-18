@@ -23,7 +23,7 @@ function sendVerificationEmail(name, email, verificationToken, IsVerified) {
     })
 }
 
-
+/*
 function followupVerification(email, IsVerified) {
     const msg = {
             to: email, // Change to your recipient
@@ -40,5 +40,5 @@ function followupVerification(email, IsVerified) {
     .catch((error) => {
         console.error(error)
     })
-}
-module.exports = { sendVerificationEmail, followupVerification};
+}*/
+module.exports = { sendVerificationEmail };
